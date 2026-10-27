@@ -17,11 +17,12 @@ public class ClientesController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? termo)
+    public async Task<IActionResult> Index(string? termo, int pagina = 1, int tamanho = 20)
     {
         ViewBag.TermoBusca = termo;
-        var clientes = await _clienteService.ListarAsync(termo, HttpContext.RequestAborted);
-        return View(clientes);
+        var clientes = await _clienteService.ListarAsync(termo, pagina, tamanho, HttpContext.RequestAborted);
+        ViewBag.Paginacao = clientes;
+        return View(clientes.Items);
     }
 
     [HttpGet]

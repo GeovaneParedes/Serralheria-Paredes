@@ -1,4 +1,5 @@
 using Serralheria_Paredes.Common.Validation;
+using Serralheria_Paredes.Common.Pagination;
 using Serralheria_Paredes.Models;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Repositories.Interfaces;
@@ -19,10 +20,11 @@ public class FornecedorService : IFornecedorService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<IReadOnlyList<FornecedorViewModel>> ListarAsync(string? termo = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<FornecedorViewModel>> ListarAsync(string? termo = null, int pagina = 1, int tamanho = Paginacao.TamanhoPadrao, CancellationToken cancellationToken = default)
     {
-        var fornecedores = await _fornecedorRepository.ObterTodosComFiltroAsync(termo, cancellationToken);
-        return fornecedores.Select(MapearParaViewModel).ToList();
+        (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
+        var fornecedores = await _fornecedorRepository.ObterTodosComFiltroAsync(termo, pagina, tamanho, cancellationToken);
+        return new PagedResult<FornecedorViewModel>(fornecedores.Items.Select(MapearParaViewModel).ToList(), pagina, tamanho, fornecedores.Total);
     }
 
     public async Task<OperationResult<FornecedorViewModel>> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)

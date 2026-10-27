@@ -68,4 +68,14 @@
             </table>
         </div>
     </div>
+    @if (Model.Paginacao?.TotalPaginas > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <small class="text-muted">Página @Model.Paginacao.Pagina de @Model.Paginacao.TotalPaginas · @Model.Paginacao.Total registro(s)</small>
+            <div class="btn-group">
+                @if (Model.Paginacao.Pagina > 1) { <a class="btn btn-sm btn-outline-secondary" asp-route-termo="@Model.Termo" asp-route-pagina="@(Model.Paginacao.Pagina - 1)" asp-route-tamanho="@Model.Paginacao.Tamanho">Anterior</a> }
+                @if (Model.Paginacao.Pagina < Model.Paginacao.TotalPaginas) { <a class="btn btn-sm btn-outline-secondary" asp-route-termo="@Model.Termo" asp-route-pagina="@(Model.Paginacao.Pagina + 1)" asp-route-tamanho="@Model.Paginacao.Tamanho">Próxima</a> }
+            </div>
+        </div>
+    }
 </div>

@@ -33,6 +33,26 @@ public class AplicacaoIntegrationTests : IClassFixture<TestApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("Login", await response.Content.ReadAsStringAsync());
     }
+
+    [Theory]
+    [InlineData("/Clientes")]
+    [InlineData("/Fornecedores")]
+    [InlineData("/Estoque")]
+    [InlineData("/Orcamentos")]
+    [InlineData("/Orcamentos/Detalhes/1")]
+    public async Task Rotas_de_negocio_devem_exigir_autenticacao(string rota)
+    {
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+        client.BaseAddress = new Uri("https://localhost");
+
+        var response = await client.GetAsync(rota);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.StartsWith("https://localhost/Auth/Login", response.Headers.Location?.ToString());
+    }
 }
 
 public sealed class TestApplicationFactory : WebApplicationFactory<Program>
@@ -40,6 +60,8 @@ public sealed class TestApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("AdminSeed:Email", string.Empty);
+        builder.UseSetting("AdminSeed:Password", string.Empty);
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<AppDbContext>>();

@@ -1,11 +1,12 @@
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Common;
+using Serralheria_Paredes.Common.Pagination;
 
 namespace Serralheria_Paredes.Services.Interfaces;
 
 public interface IInsumoService : IService
 {
-    Task<IReadOnlyList<InsumoResumo>> ListarAsync(string? termo = null, CancellationToken cancellationToken = default);
+    Task<PagedResult<InsumoResumo>> ListarAsync(string? termo = null, int pagina = 1, int tamanho = Paginacao.TamanhoPadrao, CancellationToken cancellationToken = default);
     Task<OperationResult<InsumoResumo>> CriarAsync(InsumoCadastro cadastro, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MovimentacaoResumo>> HistoricoAsync(int? insumoId = null, CancellationToken cancellationToken = default);
     Task<OperationResult> MovimentarAsync(int id, TipoMovimentacaoEstoque tipo, decimal quantidade, string motivo, int? usuarioId = null, CancellationToken cancellationToken = default);

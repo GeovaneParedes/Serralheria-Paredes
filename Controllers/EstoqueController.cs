@@ -19,16 +19,16 @@ public class EstoqueController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? termo)
+    public async Task<IActionResult> Index(string? termo, int pagina = 1, int tamanho = 20)
     {
-        var insumos = await _insumoService.ListarAsync(termo, HttpContext.RequestAborted);
-        return View(new EstoqueIndexViewModel { Insumos = insumos, Termo = termo });
+        var insumos = await _insumoService.ListarAsync(termo, pagina, tamanho, HttpContext.RequestAborted);
+        return View(new EstoqueIndexViewModel { Insumos = insumos.Items, Termo = termo, Paginacao = insumos });
     }
 
     [HttpGet]
     public async Task<IActionResult> Movimentar(int id)
     {
-        var insumo = (await _insumoService.ListarAsync(null, HttpContext.RequestAborted))
+        var insumo = (await _insumoService.ListarAsync(null, cancellationToken: HttpContext.RequestAborted)).Items
             .FirstOrDefault(i => i.Id == id);
         if (insumo == null)
         {

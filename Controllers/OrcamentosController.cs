@@ -102,6 +102,6 @@ public class OrcamentosController : Controller
 
     private async Task CarregarClientesAsync()
     {
-        ViewBag.Clientes = await _clienteService.ListarAsync(null, HttpContext.RequestAborted);
+        ViewBag.Clientes = (await _clienteService.ListarAsync(null, cancellationToken: HttpContext.RequestAborted)).Items;
     }
 }

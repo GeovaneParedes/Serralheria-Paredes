@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Interfaces;
+using Serralheria_Paredes.Common.Pagination;
 
 namespace Serralheria_Paredes.ViewModels.Estoque;
 
@@ -8,6 +9,7 @@ public class EstoqueIndexViewModel
 {
     public IReadOnlyList<InsumoResumo> Insumos { get; init; } = Array.Empty<InsumoResumo>();
     public string? Termo { get; init; }
+    public PagedResult<InsumoResumo>? Paginacao { get; init; }
 }
 
 public class MovimentacaoEstoqueFormViewModel

@@ -3,6 +3,7 @@
     ViewData["Title"] = "Gestão de Fornecedores";
     Layout = "_Layout";
     var termo = ViewBag.TermoBusca as string;
+    var paginacao = ViewBag.Paginacao as PagedResult<FornecedorViewModel>;
 }
 
 <div class="container py-4">
@@ -140,4 +141,14 @@
             </div>
         </div>
     </div>
+    @if (paginacao?.TotalPaginas > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <small class="text-muted">Página @paginacao.Pagina de @paginacao.TotalPaginas · @paginacao.Total registro(s)</small>
+            <div class="btn-group">
+                @if (paginacao.Pagina > 1) { <a class="btn btn-sm btn-outline-secondary" asp-route-termo="@termo" asp-route-pagina="@(paginacao.Pagina - 1)" asp-route-tamanho="@paginacao.Tamanho">Anterior</a> }
+                @if (paginacao.Pagina < paginacao.TotalPaginas) { <a class="btn btn-sm btn-outline-secondary" asp-route-termo="@termo" asp-route-pagina="@(paginacao.Pagina + 1)" asp-route-tamanho="@paginacao.Tamanho">Próxima</a> }
+            </div>
+        </div>
+    }
 </div>

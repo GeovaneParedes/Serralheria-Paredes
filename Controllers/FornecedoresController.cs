@@ -17,11 +17,12 @@ public class FornecedoresController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? termo)
+    public async Task<IActionResult> Index(string? termo, int pagina = 1, int tamanho = 20)
     {
         ViewBag.TermoBusca = termo;
-        var fornecedores = await _fornecedorService.ListarAsync(termo, HttpContext.RequestAborted);
-        return View(fornecedores);
+        var fornecedores = await _fornecedorService.ListarAsync(termo, pagina, tamanho, HttpContext.RequestAborted);
+        ViewBag.Paginacao = fornecedores;
+        return View(fornecedores.Items);
     }
 
     [HttpGet]
