@@ -23,6 +23,8 @@
   - Atualizado `_Layout.cshtml` com cabeçalho de usuário logado e menu administrativo restrito.
   - Modernizado `Home/Index.cshtml` para servir como Dashboard da Serralheria com atalhos para os 4 módulos.
   - Gerada Migration inicial do EF Core: `Data/Migrations/20261027002236_CriarTabelasIdentity.cs`.
+  - **Limpeza de Código Morto do Template MVC Padrão:** Removida a View `Views/Home/Privacy.cshtml`, a action `Privacy()` de `Controllers/HomeController.cs`, o estilo conflitante `Views/Shared/_Layout.cshtml.css`, e tags não utilizadas no `_Layout.cshtml`.
+  - **Automação de Ambiente Dev com Cloudflare Quick Tunnel (`dev.sh`):** Criado script utilitário executável `dev.sh` na raiz do projeto, permitindo rodar localmente na porta 5000 com geração automática de URL pública HTTPS temporária (`https://*.trycloudflare.com`) e encerramento gracioso via `Ctrl+C`.
 
 ## 2. Decisões Tomadas
 - **ASP.NET Core Identity com PostgreSQL:** Optou-se pela robustez do Identity com chave primária inteira (`int`), hashing PBKDF2 (SHA-256) nativo, políticas de lockout contra brute-force (5 tentativas = 15 minutos de bloqueio) e cookies seguros (`__Host-Serralheria.Auth`, `SameSite=Strict`, `HttpOnly=true`).
