@@ -16,6 +16,9 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<Insumo> Insumos => Set<Insumo>();
     public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
+    public DbSet<Orcamento> Orcamentos => Set<Orcamento>();
+    public DbSet<ItemOrcamento> ItensOrcamento => Set<ItemOrcamento>();
+    public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -150,6 +153,58 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
             b.HasOne(m => m.Insumo)
                 .WithMany()
                 .HasForeignKey(m => m.InsumoId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Orcamento>(b =>
+        {
+            b.ToTable("orcamentos");
+            b.HasKey(o => o.Id);
+            b.Property(o => o.Numero).HasMaxLength(30).IsRequired();
+            b.Property(o => o.Titulo).HasMaxLength(150).IsRequired();
+            b.Property(o => o.Descricao).HasMaxLength(1000);
+            b.Property(o => o.SubtotalMateriais).HasPrecision(12, 2);
+            b.Property(o => o.ValorMaoDeObra).HasPrecision(12, 2);
+            b.Property(o => o.PercentualMargem).HasPrecision(5, 2);
+            b.Property(o => o.ValorTotal).HasPrecision(12, 2);
+            b.HasIndex(o => o.Numero).IsUnique();
+            b.HasOne(o => o.Cliente)
+                .WithMany()
+                .HasForeignKey(o => o.ClienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ItemOrcamento>(b =>
+        {
+            b.ToTable("itens_orcamento");
+            b.HasKey(i => i.Id);
+            b.Property(i => i.Descricao).HasMaxLength(200).IsRequired();
+            b.Property(i => i.Quantidade).HasPrecision(12, 3);
+            b.Property(i => i.ComprimentoUnitarioMetros).HasPrecision(10, 3);
+            b.Property(i => i.PercentualPerda).HasPrecision(5, 2);
+            b.Property(i => i.CustoUnitario).HasPrecision(12, 2);
+            b.Property(i => i.Subtotal).HasPrecision(12, 2);
+            b.HasOne(i => i.Orcamento)
+                .WithMany(o => o.Itens)
+                .HasForeignKey(i => i.OrcamentoId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(i => i.Insumo)
+                .WithMany()
+                .HasForeignKey(i => i.InsumoId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<OrdemServico>(b =>
+        {
+            b.ToTable("ordens_servico");
+            b.HasKey(o => o.Id);
+            b.Property(o => o.Numero).HasMaxLength(30).IsRequired();
+            b.Property(o => o.ObservacoesProducao).HasMaxLength(1000);
+            b.HasIndex(o => o.Numero).IsUnique();
+            b.HasIndex(o => o.OrcamentoId).IsUnique();
+            b.HasOne(o => o.Orcamento)
+                .WithOne(o => o.OrdemServico)
+                .HasForeignKey<OrdemServico>(o => o.OrcamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
