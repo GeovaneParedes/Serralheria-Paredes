@@ -44,6 +44,7 @@
                                 <td>@orcamento.ValorTotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
                                 <td>@orcamento.ValidoAte.ToString("dd/MM/yyyy")</td>
                                 <td class="text-end">
+                                    <a asp-action="Detalhes" asp-route-id="@orcamento.Id" class="btn btn-sm btn-outline-secondary">Detalhes</a>
                                     @if (!orcamento.PossuiOrdemServico && orcamento.Status != StatusOrcamento.Recusado && orcamento.Status != StatusOrcamento.Expirado)
                                     {
                                         <form asp-action="Aprovar" method="post" class="d-inline">

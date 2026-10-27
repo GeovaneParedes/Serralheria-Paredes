@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Interfaces;
 using Serralheria_Paredes.ViewModels.Orcamentos;
 
@@ -29,6 +30,14 @@ public class OrcamentosController : Controller
     {
         await CarregarClientesAsync();
         return View(new OrcamentoFormViewModel());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Detalhes(int id)
+    {
+        var result = await _orcamentoService.ObterDetalhesAsync(id, HttpContext.RequestAborted);
+        if (!result.Success) return NotFound();
+        return View(result.Data);
     }
 
     [HttpPost]
@@ -62,6 +71,15 @@ public class OrcamentosController : Controller
             ? result.Message
             : string.Join("; ", result.Errors);
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AtualizarStatus(int id, StatusOrdemServico status)
+    {
+        var result = await _orcamentoService.AtualizarStatusOrdemAsync(id, status, HttpContext.RequestAborted);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Success ? result.Message : string.Join("; ", result.Errors);
+        return RedirectToAction(nameof(Detalhes), new { id });
     }
 
     private async Task CarregarClientesAsync()

@@ -20,6 +20,14 @@ public class OrcamentoService : IOrcamentoService
     public async Task<IReadOnlyList<OrcamentoResumo>> ListarAsync(CancellationToken cancellationToken = default) =>
         (await _repository.ObterTodosAsync(cancellationToken)).Select(Mapear).ToList();
 
+    public async Task<OperationResult<OrcamentoDetalhe>> ObterDetalhesAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var orcamento = await _repository.ObterComItensAsync(id, cancellationToken);
+        return orcamento == null
+            ? OperationResult<OrcamentoDetalhe>.Fail("Orçamento não encontrado.")
+            : OperationResult<OrcamentoDetalhe>.Ok(MapearDetalhe(orcamento));
+    }
+
     public async Task<OperationResult<OrcamentoResumo>> CriarAsync(OrcamentoCadastro cadastro, CancellationToken cancellationToken = default)
     {
         if (cadastro.ClienteId <= 0 || string.IsNullOrWhiteSpace(cadastro.Titulo))
@@ -89,6 +97,20 @@ public class OrcamentoService : IOrcamentoService
         return OperationResult<OrcamentoResumo>.Ok(Mapear(orcamento), "Orçamento aprovado e ordem de serviço criada.");
     }
 
+    public async Task<OperationResult> AtualizarStatusOrdemAsync(int id, StatusOrdemServico status, CancellationToken cancellationToken = default)
+    {
+        if (!Enum.IsDefined(status)) return OperationResult.Fail("Status de produção inválido.");
+        var orcamento = await _repository.ObterComItensAsync(id, cancellationToken);
+        if (orcamento?.OrdemServico == null) return OperationResult.Fail("Ordem de serviço não encontrada.");
+        if (orcamento.Status != StatusOrcamento.Aprovado) return OperationResult.Fail("O orçamento ainda não foi aprovado.");
+
+        orcamento.OrdemServico.Status = status;
+        orcamento.OrdemServico.UpdatedAt = DateTime.UtcNow;
+        _repository.Update(orcamento);
+        await _repository.SaveChangesAsync(cancellationToken);
+        return OperationResult.Ok("Status da ordem de serviço atualizado.");
+    }
+
     private static OrcamentoResumo Mapear(Orcamento orcamento) => new(
         orcamento.Id,
         orcamento.Numero,
@@ -98,4 +120,13 @@ public class OrcamentoService : IOrcamentoService
         orcamento.ValorTotal,
         orcamento.ValidoAte,
         orcamento.OrdemServico != null);
+
+    private static OrcamentoDetalhe MapearDetalhe(Orcamento orcamento) => new(
+        Mapear(orcamento),
+        orcamento.Descricao,
+        orcamento.SubtotalMateriais,
+        orcamento.ValorMaoDeObra,
+        orcamento.PercentualMargem,
+        orcamento.Itens.Select(i => new ItemOrcamentoResumo(i.Descricao, i.Unidade, i.Quantidade, i.ComprimentoUnitarioMetros, i.PercentualPerda, i.CustoUnitario, i.Subtotal)).ToList(),
+        orcamento.OrdemServico == null ? null : new OrdemServicoResumo(orcamento.OrdemServico.Numero, orcamento.OrdemServico.Status, orcamento.OrdemServico.DataPrevistaEntrega, orcamento.OrdemServico.ObservacoesProducao));
 }
