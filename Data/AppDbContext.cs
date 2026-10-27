@@ -12,6 +12,10 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
     {
     }
 
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
+    public DbSet<Insumo> Insumos => Set<Insumo>();
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries()
@@ -65,7 +69,73 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
         modelBuilder.Entity<IdentityUserToken<int>>(b => b.ToTable("usuario_tokens"));
         modelBuilder.Entity<IdentityRoleClaim<int>>(b => b.ToTable("perfil_claims"));
 
-        // Aplica automaticamente configurações de outras entidades
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        // Mapeamento da entidade Cliente
+        modelBuilder.Entity<Cliente>(b =>
+        {
+            b.ToTable("clientes");
+            b.HasKey(c => c.Id);
+            b.Property(c => c.NomeOuRazaoSocial).HasMaxLength(150).IsRequired();
+            b.Property(c => c.NomeFantasia).HasMaxLength(150);
+            b.Property(c => c.CpfOuCnpj).HasMaxLength(20).IsRequired();
+            b.Property(c => c.RgOuInscricaoEstadual).HasMaxLength(25);
+            b.Property(c => c.Telefone).HasMaxLength(20).IsRequired();
+            b.Property(c => c.Celular).HasMaxLength(20);
+            b.Property(c => c.Email).HasMaxLength(100);
+            b.Property(c => c.EnderecoCep).HasMaxLength(10);
+            b.Property(c => c.EnderecoLogradouro).HasMaxLength(150);
+            b.Property(c => c.EnderecoNumero).HasMaxLength(20);
+            b.Property(c => c.EnderecoComplemento).HasMaxLength(100);
+            b.Property(c => c.EnderecoBairro).HasMaxLength(80);
+            b.Property(c => c.EnderecoCidade).HasMaxLength(80);
+            b.Property(c => c.EnderecoEstado).HasMaxLength(2);
+            b.Property(c => c.Observacoes).HasMaxLength(500);
+
+            b.HasIndex(c => c.CpfOuCnpj);
+            b.HasIndex(c => c.NomeOuRazaoSocial);
+        });
+
+        // Mapeamento da entidade Fornecedor
+        modelBuilder.Entity<Fornecedor>(b =>
+        {
+            b.ToTable("fornecedores");
+            b.HasKey(f => f.Id);
+            b.Property(f => f.RazaoSocial).HasMaxLength(150).IsRequired();
+            b.Property(f => f.NomeFantasia).HasMaxLength(150);
+            b.Property(f => f.CpfOuCnpj).HasMaxLength(20).IsRequired();
+            b.Property(f => f.InscricaoEstadual).HasMaxLength(25);
+            b.Property(f => f.Telefone).HasMaxLength(20).IsRequired();
+            b.Property(f => f.Email).HasMaxLength(100);
+            b.Property(f => f.ContatoResponsavel).HasMaxLength(80);
+            b.Property(f => f.EnderecoCep).HasMaxLength(10);
+            b.Property(f => f.EnderecoLogradouro).HasMaxLength(150);
+            b.Property(f => f.EnderecoNumero).HasMaxLength(20);
+            b.Property(f => f.EnderecoComplemento).HasMaxLength(100);
+            b.Property(f => f.EnderecoBairro).HasMaxLength(80);
+            b.Property(f => f.EnderecoCidade).HasMaxLength(80);
+            b.Property(f => f.EnderecoEstado).HasMaxLength(2);
+            b.Property(f => f.Observacoes).HasMaxLength(500);
+
+            b.HasIndex(f => f.CpfOuCnpj);
+            b.HasIndex(f => f.RazaoSocial);
+        });
+
+        modelBuilder.Entity<Insumo>(b =>
+        {
+            b.ToTable("insumos");
+            b.HasKey(i => i.Id);
+            b.Property(i => i.Codigo).HasMaxLength(40).IsRequired();
+            b.Property(i => i.Descricao).HasMaxLength(150).IsRequired();
+            b.Property(i => i.ComprimentoBarraMetros).HasPrecision(10, 3);
+            b.Property(i => i.EstoqueAtual).HasPrecision(12, 3);
+            b.Property(i => i.EstoqueMinimo).HasPrecision(12, 3);
+            b.Property(i => i.CustoUnitario).HasPrecision(12, 2);
+            b.HasIndex(i => i.Codigo).IsUnique();
+            b.HasIndex(i => i.Descricao);
+            b.HasOne(i => i.Fornecedor)
+                .WithMany()
+                .HasForeignKey(i => i.FornecedorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
     }
 }

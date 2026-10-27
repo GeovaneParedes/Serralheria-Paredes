@@ -60,10 +60,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// 4. Injeção de Dependência das Camadas Base (Repository & UnitOfWork & Services)
+// 4. Injeção de Dependência das Camadas Base (Repositories & Services)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+builder.Services.AddScoped<IInsumoRepository, InsumoRepository>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IFornecedorService, FornecedorService>();
+builder.Services.AddScoped<IInsumoService, InsumoService>();
 
 // 5. Segurança: Proteção CSRF / Antiforgery com Cookies Seguros
 builder.Services.AddAntiforgery(options =>
@@ -131,3 +136,7 @@ catch (Exception ex)
 }
 
 app.Run();
+
+public partial class Program
+{
+}
