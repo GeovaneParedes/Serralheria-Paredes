@@ -31,11 +31,29 @@
         <div class="card-header fw-bold">Itens e consumo</div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
-                <thead><tr><th>Descrição</th><th>Quantidade</th><th>Comprimento</th><th>Perda</th><th>Custo</th><th>Subtotal</th></tr></thead>
+                <thead><tr><th>Descrição</th><th>Quantidade</th><th>Comprimento</th><th>Perda</th><th>Custo</th><th>Subtotal</th><th>Consumo</th></tr></thead>
                 <tbody>
                     @foreach (var item in Model.Itens)
                     {
-                        <tr><td>@item.Descricao</td><td>@item.Quantidade.ToString("N3") @item.Unidade</td><td>@item.ComprimentoUnitarioMetros.ToString("N3") m</td><td>@item.PercentualPerda.ToString("N2")%</td><td>@item.CustoUnitario.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td><td>@item.Subtotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td></tr>
+                        <tr>
+                            <td>@item.Descricao</td><td>@item.Quantidade.ToString("N3") @item.Unidade</td><td>@item.ComprimentoUnitarioMetros.ToString("N3") m</td><td>@item.PercentualPerda.ToString("N2")%</td><td>@item.CustoUnitario.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td><td>@item.Subtotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
+                            <td>
+                                @if (Model.OrdemServico != null && item.InsumoId.HasValue)
+                                {
+                                    <form asp-action="Consumir" method="post" class="d-flex gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@Model.Resumo.Id" />
+                                        <input type="hidden" name="insumoId" value="@item.InsumoId" />
+                                        <input type="number" name="quantidade" class="form-control form-control-sm" min="0.001" step="0.001" value="@item.Quantidade" aria-label="Quantidade consumida" />
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Baixar</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Sem insumo vinculado</span>
+                                }
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>

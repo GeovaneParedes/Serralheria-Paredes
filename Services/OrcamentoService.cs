@@ -141,7 +141,7 @@ public class OrcamentoService : IOrcamentoService
         orcamento.SubtotalMateriais,
         orcamento.ValorMaoDeObra,
         orcamento.PercentualMargem,
-        orcamento.Itens.Select(i => new ItemOrcamentoResumo(i.Descricao, i.Unidade, i.Quantidade, i.ComprimentoUnitarioMetros, i.PercentualPerda, i.CustoUnitario, i.Subtotal)).ToList(),
+        orcamento.Itens.Select(i => new ItemOrcamentoResumo(i.InsumoId, i.Descricao, i.Unidade, i.Quantidade, i.ComprimentoUnitarioMetros, i.PercentualPerda, i.CustoUnitario, i.Subtotal)).ToList(),
             orcamento.OrdemServico == null ? null : new OrdemServicoResumo(orcamento.OrdemServico.Numero, orcamento.OrdemServico.Status, orcamento.OrdemServico.DataPrevistaEntrega, orcamento.OrdemServico.ObservacoesProducao),
             orcamento.OrdemServico?.Historico.Select(h => new HistoricoOrdemServicoResumo(h.StatusAnterior, h.StatusNovo, h.Observacao, h.CreatedAt)).ToList() ?? []);
 }

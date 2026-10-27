@@ -155,6 +155,10 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
                 .WithMany()
                 .HasForeignKey(m => m.InsumoId)
                 .OnDelete(DeleteBehavior.Restrict);
+                b.HasOne(m => m.OrdemServico)
+                    .WithMany(o => o.MovimentacoesEstoque)
+                    .HasForeignKey(m => m.OrdemServicoId)
+                    .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Orcamento>(b =>

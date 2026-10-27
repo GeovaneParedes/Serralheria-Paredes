@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Interfaces;
 using Serralheria_Paredes.ViewModels.Orcamentos;
@@ -11,11 +12,13 @@ public class OrcamentosController : Controller
 {
     private readonly IOrcamentoService _orcamentoService;
     private readonly IClienteService _clienteService;
+    private readonly IInsumoService _insumoService;
 
-    public OrcamentosController(IOrcamentoService orcamentoService, IClienteService clienteService)
+    public OrcamentosController(IOrcamentoService orcamentoService, IClienteService clienteService, IInsumoService insumoService)
     {
         _orcamentoService = orcamentoService;
         _clienteService = clienteService;
+        _insumoService = insumoService;
     }
 
     [HttpGet]
@@ -78,6 +81,16 @@ public class OrcamentosController : Controller
     public async Task<IActionResult> AtualizarStatus(int id, StatusOrdemServico status)
     {
         var result = await _orcamentoService.AtualizarStatusOrdemAsync(id, status, HttpContext.RequestAborted);
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Success ? result.Message : string.Join("; ", result.Errors);
+        return RedirectToAction(nameof(Detalhes), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Consumir(int id, int insumoId, decimal quantidade)
+    {
+        var usuarioId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsed) ? parsed : (int?)null;
+        var result = await _insumoService.ConsumirParaOrdemAsync(id, insumoId, quantidade, usuarioId, HttpContext.RequestAborted);
         TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Success ? result.Message : string.Join("; ", result.Errors);
         return RedirectToAction(nameof(Detalhes), new { id });
     }

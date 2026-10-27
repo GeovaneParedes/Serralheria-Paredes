@@ -13,4 +13,6 @@ public class MovimentacaoEstoque : BaseEntity
     public decimal SaldoPosterior { get; set; }
     public string Motivo { get; set; } = string.Empty;
     public int? UsuarioId { get; set; }
+    public int? OrdemServicoId { get; set; }
+    public OrdemServico? OrdemServico { get; set; }
 }

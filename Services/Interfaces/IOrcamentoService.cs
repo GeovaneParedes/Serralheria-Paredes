@@ -51,6 +51,7 @@ public sealed record OrcamentoDetalhe(
     IReadOnlyList<HistoricoOrdemServicoResumo> Historico);
 
 public sealed record ItemOrcamentoResumo(
+    int? InsumoId,
     string Descricao,
     UnidadeMedida Unidade,
     decimal Quantidade,
