@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Serralheria_Paredes.Common.Pagination;
 using Serralheria_Paredes.Common.Validation;
 using Serralheria_Paredes.Data;
 using Serralheria_Paredes.Models;
@@ -12,7 +13,7 @@ public class FornecedorRepository : Repository<Fornecedor>, IFornecedorRepositor
     {
     }
 
-    public async Task<IReadOnlyList<Fornecedor>> ObterTodosComFiltroAsync(string? termo, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Fornecedor>> ObterTodosComFiltroAsync(string? termo, int pagina, int tamanho, CancellationToken cancellationToken = default)
     {
         var query = _dbSet.AsNoTracking();
 
@@ -30,7 +31,9 @@ public class FornecedorRepository : Repository<Fornecedor>, IFornecedorRepositor
                 f.Telefone.Contains(termoLimpo));
         }
 
-        return await query.OrderBy(f => f.RazaoSocial).ToListAsync(cancellationToken);
+        var total = await query.CountAsync(cancellationToken);
+        var itens = await query.OrderBy(f => f.RazaoSocial).Skip((pagina - 1) * tamanho).Take(tamanho).ToListAsync(cancellationToken);
+        return new PagedResult<Fornecedor>(itens, pagina, tamanho, total);
     }
 
     public async Task<bool> DocumentoJaCadastradoAsync(string cpfOuCnpj, int? ignorarId = null, CancellationToken cancellationToken = default)

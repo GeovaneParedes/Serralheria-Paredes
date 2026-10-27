@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Serralheria_Paredes.Common.Pagination;
 using Microsoft.Extensions.Logging.Abstractions;
 using Serralheria_Paredes.Models;
 using Serralheria_Paredes.Models.Enums;
@@ -102,8 +103,8 @@ public class InsumoServiceTests
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(1);
 
-        public Task<IReadOnlyList<Insumo>> ObterTodosComFiltroAsync(string? termo, CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<Insumo>>(_items);
+        public Task<PagedResult<Insumo>> ObterTodosComFiltroAsync(string? termo, int pagina, int tamanho, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PagedResult<Insumo>(_items, pagina, tamanho, _items.Count));
 
         public Task<bool> CodigoJaCadastradoAsync(string codigo, int? ignorarId = null, CancellationToken cancellationToken = default) =>
             Task.FromResult(_items.Any(item => item.Codigo == codigo && item.Id != ignorarId));

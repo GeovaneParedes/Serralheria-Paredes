@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using Serralheria_Paredes.Data;
 using Serralheria_Paredes.Data.Seeds;
 using Serralheria_Paredes.Middlewares;
@@ -11,6 +12,11 @@ using Serralheria_Paredes.Services;
 using Serralheria_Paredes.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false);
+}
 
 // 1. Configuração do Banco de Dados PostgreSQL (Npgsql)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -90,6 +96,15 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
+
+    var knownProxies = builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [];
+    foreach (var proxy in knownProxies)
+    {
+        if (IPAddress.TryParse(proxy, out var address))
+        {
+            options.KnownProxies.Add(address);
+        }
+    }
 });
 
 // 7. Configuração de MVC com Controllers Magros

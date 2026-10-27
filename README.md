@@ -106,12 +106,22 @@ cd Serralheria-Paredes
 ```
 
 ### 2. Configurar a String de Conexão
-Edite o arquivo `appsettings.json` ou defina via variável de ambiente:
+Crie o arquivo local ignorado `appsettings.local.json` ou defina a variável de
+ambiente `ConnectionStrings__DefaultConnection`:
 ```json
-"ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=serralheria_paredes_db;Username=postgres;Password=SEU_PASSWORD;Include Error Detail=true;"
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=serralheria_paredes_db;Username=postgres;Password=SEU_PASSWORD;"
+  },
+  "AdminSeed": {
+    "Email": "admin@serralheriaparedes.com.br",
+    "Password": "SUA_SENHA_FORTE"
+  }
 }
 ```
+
+`AdminSeed:Password` nunca deve ser commitado. Sem essa configuração, o
+aplicativo cria os perfis, mas não cria um administrador inicial.
 
 ### 3. Restaurar e Compilar
 ```bash

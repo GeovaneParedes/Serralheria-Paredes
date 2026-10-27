@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Serralheria_Paredes.Common.Pagination;
 using Serralheria_Paredes.Data;
 using Serralheria_Paredes.Models;
 using Serralheria_Paredes.Repositories.Interfaces;
@@ -11,7 +12,7 @@ public class InsumoRepository : Repository<Insumo>, IInsumoRepository
     {
     }
 
-    public async Task<IReadOnlyList<Insumo>> ObterTodosComFiltroAsync(string? termo, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<Insumo>> ObterTodosComFiltroAsync(string? termo, int pagina, int tamanho, CancellationToken cancellationToken = default)
     {
         var query = _dbSet.AsNoTracking().Include(i => i.Fornecedor).AsQueryable();
         if (!string.IsNullOrWhiteSpace(termo))
@@ -21,7 +22,9 @@ public class InsumoRepository : Repository<Insumo>, IInsumoRepository
                                      EF.Functions.ILike(i.Descricao, $"%{busca}%"));
         }
 
-        return await query.OrderBy(i => i.Descricao).ToListAsync(cancellationToken);
+        var total = await query.CountAsync(cancellationToken);
+        var itens = await query.OrderBy(i => i.Descricao).Skip((pagina - 1) * tamanho).Take(tamanho).ToListAsync(cancellationToken);
+        return new PagedResult<Insumo>(itens, pagina, tamanho, total);
     }
 
     public Task<bool> CodigoJaCadastradoAsync(string codigo, int? ignorarId = null, CancellationToken cancellationToken = default)

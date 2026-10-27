@@ -14,6 +14,7 @@ public static class IdentityDataSeeder
         using var scope = serviceProvider.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Perfil>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Usuario>>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("IdentityDataSeeder");
 
         // 1. Criar Perfis Padrão se não existirem
@@ -28,7 +29,14 @@ public static class IdentityDataSeeder
         }
 
         // 2. Criar Usuário Administrador padrão se nenhum usuário existir
-        const string adminEmail = "admin@serralheriaparedes.com.br";
+        var adminEmail = configuration["AdminSeed:Email"];
+        var defaultPassword = configuration["AdminSeed:Password"];
+        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(defaultPassword))
+        {
+            logger.LogWarning("Administrador inicial não criado: AdminSeed:Email e AdminSeed:Password não configurados.");
+            return;
+        }
+
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
@@ -44,7 +52,6 @@ public static class IdentityDataSeeder
                 CreatedAt = DateTime.UtcNow
             };
 
-            const string defaultPassword = "Admin@Serralheria2026!";
             var result = await userManager.CreateAsync(adminUser, defaultPassword);
 
             if (result.Succeeded)

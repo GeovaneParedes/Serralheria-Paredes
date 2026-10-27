@@ -1,4 +1,5 @@
 using Serralheria_Paredes.Models;
+using Serralheria_Paredes.Common.Pagination;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Repositories.Interfaces;
 using Serralheria_Paredes.Services.Common;
@@ -25,10 +26,11 @@ public class InsumoService : IInsumoService
         _ordemRepository = ordemRepository;
     }
 
-    public async Task<IReadOnlyList<InsumoResumo>> ListarAsync(string? termo = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<InsumoResumo>> ListarAsync(string? termo = null, int pagina = 1, int tamanho = Paginacao.TamanhoPadrao, CancellationToken cancellationToken = default)
     {
-        var insumos = await _repository.ObterTodosComFiltroAsync(termo, cancellationToken);
-        return insumos.Select(Mapear).ToList();
+        (pagina, tamanho) = Paginacao.Normalizar(pagina, tamanho);
+        var insumos = await _repository.ObterTodosComFiltroAsync(termo, pagina, tamanho, cancellationToken);
+        return new PagedResult<InsumoResumo>(insumos.Items.Select(Mapear).ToList(), pagina, tamanho, insumos.Total);
     }
 
     public async Task<OperationResult<InsumoResumo>> CriarAsync(InsumoCadastro cadastro, CancellationToken cancellationToken = default)
