@@ -20,6 +20,7 @@
 - Atualizado `appsettings.json` com endpoint Kestrel (`http://localhost:5000`) e string de conexão do PostgreSQL.
 - Criado manifesto de configuração do Nginx em `infra/nginx/serralheria-paredes.conf` com suporte a Cloudflare (Full Strict SSL, `CF-Connecting-IP`, preservação de IP real, rate limiting e gzip).
 - Criado arquivo de serviço do systemd em `infra/systemd/serralheria-paredes.service` com hardening e execução não-root.
+- Modernizado e documentado o `README.md` com badges da stack (.NET 10, C# 13, EF Core, PostgreSQL, Nginx, Cloudflare, Ubuntu), fluxo arquitetural e instruções completas de execução local e produção.
 
 ## 2. Decisões Tomadas
 - **Camada de Repositórios Genérica + UnitOfWork:** Desacopla o EF Core da camada de negócio e permite transações ACID consistentes em operações compostas.
