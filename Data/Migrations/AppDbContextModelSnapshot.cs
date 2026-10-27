@@ -373,6 +373,56 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.ToTable("insumos", (string)null);
                 });
 
+            modelBuilder.Entity("Serralheria_Paredes.Models.MovimentacaoEstoque", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("InsumoId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Motivo")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<decimal>("Quantidade")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)");
+
+                    b.Property<decimal>("SaldoAnterior")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)");
+
+                    b.Property<decimal>("SaldoPosterior")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InsumoId", "CreatedAt");
+
+                    b.ToTable("movimentacoes_estoque", (string)null);
+                });
+
             modelBuilder.Entity("Serralheria_Paredes.Models.Perfil", b =>
                 {
                     b.Property<int>("Id")
@@ -550,6 +600,17 @@ namespace Serralheria_Paredes.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Fornecedor");
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.MovimentacaoEstoque", b =>
+                {
+                    b.HasOne("Serralheria_Paredes.Models.Insumo", "Insumo")
+                        .WithMany()
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
                 });
 #pragma warning restore 612, 618
         }

@@ -31,6 +31,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Fornecedores" asp-action="Index">🏢 Fornecedores</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Estoque" asp-action="Index">📦 Estoque</a>
+                            </li>
                             @if (User.IsInRole(PerfisConstantes.Administrador))
                             {
                                 <li class="nav-item">
