@@ -1,0 +1,68 @@
+@model RelatorioViewModel
+@{
+    ViewData["Title"] = "Relatórios Operacionais";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">📊 Relatórios operacionais</h2>
+            <p class="text-muted mb-0">Visão consolidada de estoque, vendas e produção.</p>
+        </div>
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto"><label class="form-label small mb-1" for="inicio">De</label><input class="form-control" type="date" id="inicio" name="inicio" value="@Model.Inicio.ToString("yyyy-MM-dd")" /></div>
+            <div class="col-auto"><label class="form-label small mb-1" for="fim">Até</label><input class="form-control" type="date" id="fim" name="fim" value="@Model.Fim.ToString("yyyy-MM-dd")" /></div>
+            <div class="col-auto"><button class="btn btn-dark" type="submit">Aplicar</button></div>
+        </form>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Clientes ativos</small><h2 class="mb-0">@Model.ClientesAtivos</h2></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Fornecedores ativos</small><h2 class="mb-0">@Model.FornecedoresAtivos</h2></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><small class="text-muted">Estoque abaixo do mínimo</small><h2 class="mb-0 @(Model.InsumosAbaixoDoMinimo > 0 ? "text-danger" : "text-success")">@Model.InsumosAbaixoDoMinimo</h2></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><small class="text-muted">Orçamentos aprovados</small><h2 class="mb-0">@Model.ValorOrcamentosAprovados.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</h2><small class="text-muted">@Model.OrcamentosNoPeriodo no período</small></div></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header fw-bold">Ordens por etapa</div>
+                <div class="card-body">
+                    @if (!Model.OrdensPorStatus.Any())
+                    {
+                        <p class="text-muted mb-0">Nenhuma ordem de serviço cadastrada.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.OrdensPorStatus)
+                            {
+                                <div class="list-group-item d-flex justify-content-between px-0"><span>@item.Status</span><strong>@item.Quantidade</strong></div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header fw-bold">Consumo de insumos no período</div>
+                <div class="card-body">
+                    @if (!Model.ConsumoPorInsumo.Any())
+                    {
+                        <p class="text-muted mb-0">Nenhum consumo registrado.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in Model.ConsumoPorInsumo)
+                            {
+                                <div class="list-group-item d-flex justify-content-between px-0"><span>@item.Insumo</span><strong>@item.Quantidade.ToString("N3")</strong></div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

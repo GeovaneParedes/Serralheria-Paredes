@@ -37,6 +37,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Orcamentos" asp-action="Index">🧾 Orçamentos</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Relatorios" asp-action="Index">📊 Relatórios</a>
+                            </li>
                             @if (User.IsInRole(PerfisConstantes.Administrador))
                             {
                                 <li class="nav-item">

@@ -79,6 +79,8 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IFornecedorService, FornecedorService>();
 builder.Services.AddScoped<IInsumoService, InsumoService>();
 builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
+builder.Services.AddScoped<IRelatorioRepository, RelatorioRepository>();
+builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 
 // 5. Segurança: Proteção CSRF / Antiforgery com Cookies Seguros
 builder.Services.AddAntiforgery(options =>
