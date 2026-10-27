@@ -120,10 +120,19 @@ dotnet build
 ```
 
 ### 4. Executar a Aplicação
+
+#### Opção A: Execução Padrão Local (Kestrel)
 ```bash
 dotnet run
 ```
 Acesse no navegador: `http://localhost:5000`
+
+#### Opção B: Execução com Túnel HTTPS Público (Cloudflare Quick Tunnel)
+Para testar dispositivos móveis, integrações remotas ou validação com HTTPS temporário:
+```bash
+./dev.sh
+```
+O script sobe a aplicação na porta `5000` e gera automaticamente uma URL pública segura (`https://*.trycloudflare.com`). Para encerrar, basta teclar `Ctrl+C`.
 
 ---
 
