@@ -36,30 +36,40 @@
                         <label asp-for="Descricao" class="form-label"></label>
                         <textarea asp-for="Descricao" class="form-control" rows="2"></textarea>
                     </div>
-                    <div class="col-12"><h5 class="border-bottom pb-2 mt-2">Primeiro item de material</h5></div>
-                    <div class="col-md-6">
-                        <label asp-for="Itens[0].Descricao" class="form-label">Descrição</label>
-                        <input asp-for="Itens[0].Descricao" class="form-control" placeholder="Ex.: Perfil de alumínio 25 mm" />
+                    <div class="col-12 d-flex justify-content-between align-items-center border-bottom pb-2 mt-2">
+                        <h5 class="mb-0">Itens de material</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="adicionar-item">Adicionar item</button>
                     </div>
-                    <div class="col-md-3">
-                        <label asp-for="Itens[0].Quantidade" class="form-label"></label>
-                        <input asp-for="Itens[0].Quantidade" class="form-control" step="0.001" />
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="Itens[0].Unidade" class="form-label"></label>
-                        <select asp-for="Itens[0].Unidade" asp-items="Html.GetEnumSelectList<UnidadeMedida>()" class="form-select"></select>
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-label"></label>
-                        <input asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-control" step="0.001" />
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="Itens[0].CustoUnitario" class="form-label"></label>
-                        <input asp-for="Itens[0].CustoUnitario" class="form-control" step="0.01" />
-                    </div>
-                    <div class="col-md-4">
-                        <label asp-for="Itens[0].PercentualPerda" class="form-label"></label>
-                        <input asp-for="Itens[0].PercentualPerda" class="form-control" step="0.01" />
+                    <div id="itens-container" class="col-12">
+                        <div class="item-orcamento row g-2 border rounded p-3 mb-2">
+                            <div class="col-md-4">
+                                <label asp-for="Itens[0].Descricao" class="form-label">Descrição</label>
+                                <input asp-for="Itens[0].Descricao" class="form-control" placeholder="Ex.: Perfil de alumínio 25 mm" />
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Itens[0].Quantidade" class="form-label"></label>
+                                <input asp-for="Itens[0].Quantidade" class="form-control" step="0.001" />
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Itens[0].Unidade" class="form-label"></label>
+                                <select asp-for="Itens[0].Unidade" asp-items="Html.GetEnumSelectList<UnidadeMedida>()" class="form-select"></select>
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-label">Comprimento (m)</label>
+                                <input asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-control" step="0.001" />
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Itens[0].CustoUnitario" class="form-label"></label>
+                                <input asp-for="Itens[0].CustoUnitario" class="form-control" step="0.01" />
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Itens[0].PercentualPerda" class="form-label"></label>
+                                <input asp-for="Itens[0].PercentualPerda" class="form-control" step="0.01" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-danger remover-item w-100" disabled>Remover</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="ValorMaoDeObra" class="form-label"></label>
@@ -80,4 +90,27 @@
 </div>
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const container = document.getElementById('itens-container');
+            const addButton = document.getElementById('adicionar-item');
+            let index = 1;
+
+            addButton.addEventListener('click', () => {
+                const template = container.querySelector('.item-orcamento').cloneNode(true);
+                template.innerHTML = template.innerHTML.replaceAll('Itens[0]', `Itens[${index}]`);
+                template.querySelectorAll('input').forEach(input => input.value = '');
+                template.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+                template.querySelector('.remover-item').disabled = false;
+                container.appendChild(template);
+                index++;
+            });
+
+            container.addEventListener('click', event => {
+                if (event.target.classList.contains('remover-item')) {
+                    event.target.closest('.item-orcamento').remove();
+                }
+            });
+        })();
+    </script>
 }
