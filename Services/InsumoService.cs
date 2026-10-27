@@ -13,18 +13,21 @@ public class InsumoService : IInsumoService
     private readonly IInsumoRepository _repository;
     private readonly IMovimentacaoEstoqueRepository _movimentacaoRepository;
     private readonly IRepository<OrdemServico>? _ordemRepository;
+    private readonly IUnitOfWork? _unitOfWork;
     private readonly ILogger<InsumoService> _logger;
 
     public InsumoService(
         IInsumoRepository repository,
         IMovimentacaoEstoqueRepository movimentacaoRepository,
         ILogger<InsumoService> logger,
-        IRepository<OrdemServico>? ordemRepository = null)
+        IRepository<OrdemServico>? ordemRepository = null,
+        IUnitOfWork? unitOfWork = null)
     {
         _repository = repository;
         _movimentacaoRepository = movimentacaoRepository;
         _logger = logger;
         _ordemRepository = ordemRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<PagedResult<InsumoResumo>> ListarAsync(string? termo = null, int pagina = 1, int tamanho = Paginacao.TamanhoPadrao, CancellationToken cancellationToken = default)
@@ -137,9 +140,21 @@ public class InsumoService : IInsumoService
 
         try
         {
-            _repository.Update(insumo);
-            await _movimentacaoRepository.AddAsync(movimentacao, cancellationToken);
-            await _repository.SaveChangesAsync(cancellationToken);
+            async Task PersistirAsync()
+            {
+                _repository.Update(insumo);
+                await _movimentacaoRepository.AddAsync(movimentacao, cancellationToken);
+                await _repository.SaveChangesAsync(cancellationToken);
+            }
+
+            if (_unitOfWork == null)
+            {
+                await PersistirAsync();
+            }
+            else
+            {
+                await _unitOfWork.ExecuteInTransactionAsync(PersistirAsync, cancellationToken);
+            }
         }
         catch (DbUpdateConcurrencyException)
         {
