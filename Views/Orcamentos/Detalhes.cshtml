@@ -1,0 +1,63 @@
+@model OrcamentoDetalhe
+@{
+    ViewData["Title"] = "Detalhes do Orçamento";
+}
+
+<div class="container py-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">@Model.Resumo.Numero</h2>
+            <p class="text-muted mb-0">@Model.Resumo.Titulo · @Model.Resumo.Cliente</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted">Status</small><h5>@Model.Resumo.Status</h5></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted">Materiais</small><h5>@Model.SubtotalMateriais.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</h5></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted">Mão de obra</small><h5>@Model.ValorMaoDeObra.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</h5></div></div></div>
+        <div class="col-md-3"><div class="card border-0 shadow-sm"><div class="card-body"><small class="text-muted">Total</small><h5 class="text-success">@Model.Resumo.ValorTotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</h5></div></div></div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header fw-bold">Itens e consumo</div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th>Descrição</th><th>Quantidade</th><th>Comprimento</th><th>Perda</th><th>Custo</th><th>Subtotal</th></tr></thead>
+                <tbody>
+                    @foreach (var item in Model.Itens)
+                    {
+                        <tr><td>@item.Descricao</td><td>@item.Quantidade.ToString("N3") @item.Unidade</td><td>@item.ComprimentoUnitarioMetros.ToString("N3") m</td><td>@item.PercentualPerda.ToString("N2")%</td><td>@item.CustoUnitario.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td><td>@item.Subtotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.OrdemServico != null)
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-bold">Ordem de serviço @Model.OrdemServico.Numero</div>
+            <div class="card-body">
+                <form asp-action="AtualizarStatus" method="post" class="row g-3 align-items-end">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Resumo.Id" />
+                    <div class="col-md-5">
+                        <label class="form-label" for="status">Etapa de produção</label>
+                        <select class="form-select" id="status" name="status" asp-items="Html.GetEnumSelectList<StatusOrdemServico>()" asp-for="OrdemServico.Status"></select>
+                    </div>
+                    <div class="col-md-3"><small class="text-muted d-block">Entrega prevista</small>@(Model.OrdemServico.DataPrevistaEntrega?.ToString("dd/MM/yyyy") ?? "Não definida")</div>
+                    <div class="col-md-4"><button class="btn btn-primary w-100" type="submit">Atualizar etapa</button></div>
+                </form>
+            </div>
+        </div>
+    }
+</div>
