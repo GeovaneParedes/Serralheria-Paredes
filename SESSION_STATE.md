@@ -39,4 +39,5 @@
 ## 4. Estado Atual da Aplicação
 - **Build Status:** Compilação com êxito (0 erros, 0 avisos) via `dotnet build`.
 - **Target Framework:** .NET 10 (`net10.0`).
-- **Git Branch:** `feature/arquitetura-base-infraestrutura`.
+- **Git Branch:** `feature/arquitetura-base-infraestrutura` (sincronizada e publicada em `origin`).
+- **Repositório Remoto:** `git@github.com:GeovaneParedes/Serralheria-Paredes.git`
