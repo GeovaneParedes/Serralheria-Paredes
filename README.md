@@ -55,7 +55,7 @@ O projeto segue estritamente a separação em camadas com **Thin Controllers**, 
          ├── Services (Regras de negócio, cálculos e contratos desacoplados)
          │       │
          │       ▼
-         ├── Repositories & UnitOfWork (Abstração assíncrona EF Core)
+         ├── Repositories (Abstração assíncrona EF Core)
          │       │
          │       ▼
          └── PostgreSQL (Npgsql com connection pooling e auditoria automática)
@@ -73,7 +73,7 @@ Serralheria-Paredes/
 ├── Models/              # Entidades do Domínio e Banco de Dados (PostgreSQL)
 │   └── Common/          # Entidade Base com auditoria (CreatedAt, UpdatedAt, IsActive)
 ├── Repositories/        # Acesso ao banco de dados desacoplado via EF Core
-│   └── Interfaces/      # Contratos IRepository<T> e IUnitOfWork
+│   └── Interfaces/      # Contratos dos repositórios
 ├── Services/            # Implementações de regra de negócio pura
 │   ├── Common/          # OperationResult e Result Pattern para Thin Controllers
 │   └── Interfaces/      # Contratos dos serviços via Injeção de Dependência
@@ -135,6 +135,48 @@ Para testar dispositivos móveis, integrações remotas ou validação com HTTPS
 O script sobe a aplicação na porta `5000` e gera automaticamente uma URL pública segura (`https://*.trycloudflare.com`). Para encerrar, basta teclar `Ctrl+C`.
 
 ---
+
+### 5. Banco de dados e migrations
+
+Com o PostgreSQL em execução, aplique as migrations:
+
+```bash
+dotnet ef database update
+```
+
+Para criar uma migration durante o desenvolvimento:
+
+```bash
+dotnet ef migrations add NomeDaMigration
+```
+
+O banco não é necessário para os testes automatizados: o teste de integração
+usa EF Core InMemory para permanecer determinístico e isolado.
+
+## 🧪 Testes
+
+Os testes ficam em `tests/Serralheria-Paredes.Tests` e cobrem validação e
+formatação de CPF/CNPJ, resposta HTTP da tela de login e inicialização da
+aplicação com Identity e antiforgery em ambiente de teste.
+
+```bash
+dotnet test tests/Serralheria-Paredes.Tests/Serralheria-Paredes.Tests.csproj
+```
+
+## 🔀 Gitflow e Pull Requests
+
+O branch `main` recebe somente mudanças revisadas. Use branches curtas:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c feature/nome-da-funcionalidade
+```
+
+Use `fix/` para correções, `docs/` para documentação e `chore/` para
+infraestrutura. Abra o PR contra `main` após executar build e testes. O
+GitHub Actions valida automaticamente pushes e PRs, e o merge deve aguardar o
+CI verde.
 
 ## 🛡️ Segurança e Produção
 

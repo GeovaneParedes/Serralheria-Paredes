@@ -1,0 +1,79 @@
+@model FornecedorViewModel
+@{
+    ViewData["Title"] = $"Fornecedor - {Model.RazaoSocial}";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 fw-bold">🏢 @Model.RazaoSocial</h4>
+                        <small class="text-secondary">Ficha do Fornecedor de Insumos</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning btn-sm fw-bold">
+                            ✏️ Editar
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-light btn-sm">
+                            ← Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <h6 class="text-muted fw-bold text-uppercase small border-bottom pb-2">Identificação Fiscal</h6>
+                                <p class="mb-1"><strong>Razão Social:</strong> @Model.RazaoSocial</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.NomeFantasia))
+                                {
+                                    <p class="mb-1"><strong>Nome Fantasia:</strong> @Model.NomeFantasia</p>
+                                }
+                                <p class="mb-1">
+                                    <strong>Classificação:</strong>
+                                    @(Model.TipoPessoa == TipoPessoa.Juridica ? "Pessoa Jurídica (PJ)" : "Pessoa Física (PF)")
+                                </p>
+                                <p class="mb-1"><strong>CNPJ / CPF:</strong> <code>@Model.CpfOuCnpjFormatado</code></p>
+                                @if (!string.IsNullOrWhiteSpace(Model.InscricaoEstadual))
+                                {
+                                    <p class="mb-1"><strong>Inscrição Estadual:</strong> @Model.InscricaoEstadual</p>
+                                }
+                                <p class="mb-0">
+                                    <strong>Status:</strong>
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inativo</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <h6 class="text-muted fw-bold text-uppercase small border-bottom pb-2">Contato & Localização</h6>
+                                <p class="mb-1"><strong>Telefone:</strong> @Model.Telefone</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.ContatoResponsavel))
+                                {
+                                    <p class="mb-1"><strong>Representante Comercial:</strong> @Model.ContatoResponsavel</p>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                                {
+                                    <p class="mb-1"><strong>E-mail:</strong> <a href="mailto:@Model.Email">@Model.Email</a></p>
+                                }
+                                <p class="mb-1"><strong>Localização:</strong> @Model.Localizacao</p>
+                                <p class="mb-0"><strong>Data de Cadastro:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

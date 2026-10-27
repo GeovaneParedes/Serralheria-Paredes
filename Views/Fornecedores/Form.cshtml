@@ -1,0 +1,216 @@
+@model FornecedorFormViewModel
+@{
+    var ehNovo = Model.Id == 0;
+    ViewData["Title"] = ehNovo ? "Novo Fornecedor" : "Editar Fornecedor";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 fw-bold">@(ehNovo ? "➕ Cadastrar Fornecedor" : "✏️ Editar Fornecedor")</h4>
+                        <small class="text-secondary">Dados do distribuidor de insumos metalúrgicos</small>
+                    </div>
+                    <a asp-action="Index" class="btn btn-outline-light btn-sm">
+                        ← Voltar para Lista
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                            <div asp-validation-summary="ModelOnly" class="mb-0"></div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="@(ehNovo ? "Criar" : "Atualizar")" asp-route-id="@(ehNovo ? null : (int?)Model.Id)" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Seleção do Tipo de Pessoa -->
+                        <div class="mb-4 p-3 bg-light rounded-3 border">
+                            <label class="form-label fw-bold mb-2">Classificação Fiscal</label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="TipoPessoa" value="@TipoPessoa.Juridica" id="tipoPj" onchange="alternarTipoPessoa()" checked>
+                                    <label class="form-check-label fw-semibold" for="tipoPj">
+                                        Pessoa Jurídica (CNPJ)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="TipoPessoa" value="@TipoPessoa.Fisica" id="tipoPf" onchange="alternarTipoPessoa()">
+                                    <label class="form-check-label fw-semibold" for="tipoPf">
+                                        Pessoa Física (CPF)
+                                    </label>
+                                </div>
+                            </div>
+                            <span asp-validation-for="TipoPessoa" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Dados Principais -->
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label asp-for="RazaoSocial" class="form-label fw-semibold"></label>
+                                <input asp-for="RazaoSocial" class="form-control" placeholder="Ex: Aços Brasil Distribuidora Ltda" />
+                                <span asp-validation-for="RazaoSocial" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label asp-for="NomeFantasia" class="form-label fw-semibold"></label>
+                                <input asp-for="NomeFantasia" class="form-control" placeholder="Ex: Aços Brasil" />
+                                <span asp-validation-for="NomeFantasia" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CpfOuCnpj" id="labelDoc" class="form-label fw-semibold"></label>
+                                <input asp-for="CpfOuCnpj" id="inputDoc" class="form-control" placeholder="00.000.000/0000-00" oninput="aplicarMascaraDocumento(this)" />
+                                <span asp-validation-for="CpfOuCnpj" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="InscricaoEstadual" class="form-label fw-semibold"></label>
+                                <input asp-for="InscricaoEstadual" class="form-control" placeholder="Inscrição Estadual (IE)" />
+                                <span asp-validation-for="InscricaoEstadual" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Contato -->
+                        <h5 class="fw-bold text-dark mt-4 mb-3 border-bottom pb-2">📞 Atendimento & Representante</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Telefone" class="form-label fw-semibold"></label>
+                                <input asp-for="Telefone" class="form-control" placeholder="(00) 0000-0000" oninput="aplicarMascaraTelefone(this)" />
+                                <span asp-validation-for="Telefone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ContatoResponsavel" class="form-label fw-semibold"></label>
+                                <input asp-for="ContatoResponsavel" class="form-control" placeholder="Nome do Vendedor / Representante" />
+                                <span asp-validation-for="ContatoResponsavel" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <input asp-for="Email" class="form-control" placeholder="vendas@fornecedor.com.br" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Endereço -->
+                        <h5 class="fw-bold text-dark mt-4 mb-3 border-bottom pb-2">📍 Endereço / Centro de Distribuição</h5>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="EnderecoCep" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoCep" class="form-control" placeholder="00000-000" oninput="aplicarMascaraCep(this)" />
+                            </div>
+                            <div class="col-md-7 mb-3">
+                                <label asp-for="EnderecoLogradouro" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoLogradouro" class="form-control" placeholder="Rua, Rodovia, Galpão..." />
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label asp-for="EnderecoNumero" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoNumero" class="form-control" placeholder="Nº" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EnderecoComplemento" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoComplemento" class="form-control" placeholder="Galpão, Bloco..." />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EnderecoBairro" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoBairro" class="form-control" placeholder="Bairro / Distrito Industrial" />
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="EnderecoCidade" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoCidade" class="form-control" placeholder="Cidade" />
+                            </div>
+                            <div class="col-md-1 mb-3">
+                                <label asp-for="EnderecoEstado" class="form-label fw-semibold"></label>
+                                <input asp-for="EnderecoEstado" class="form-control text-uppercase" placeholder="UF" maxlength="2" />
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="mb-4">
+                            <label asp-for="Observacoes" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Observacoes" class="form-control" rows="3" placeholder="Produtos fornecidos (ex: Perfis de Alumínio Linha Suprema, Tubos Galvanizados, Soldas MIG/TIG)..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                💾 @(ehNovo ? "Salvar Fornecedor" : "Salvar Alterações")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function alternarTipoPessoa() {
+            const ehPf = document.getElementById('tipoPf').checked;
+            const labelDoc = document.getElementById('labelDoc');
+            const inputDoc = document.getElementById('inputDoc');
+
+            if (ehPf) {
+                labelDoc.innerText = 'CPF *';
+                inputDoc.placeholder = '000.000.000-00';
+            } else {
+                labelDoc.innerText = 'CNPJ *';
+                inputDoc.placeholder = '00.000.000/0000-00';
+            }
+        }
+
+        function aplicarMascaraDocumento(input) {
+            let valor = input.value.replace(/\D/g, '');
+            const ehPf = document.getElementById('tipoPf').checked;
+
+            if (ehPf) {
+                if (valor.length > 11) valor = valor.substring(0, 11);
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                if (valor.length > 14) valor = valor.substring(0, 14);
+                valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+                valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            input.value = valor;
+        }
+
+        function aplicarMascaraTelefone(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor.length > 11) valor = valor.substring(0, 11);
+            if (valor.length > 10) {
+                valor = valor.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+            } else if (valor.length > 6) {
+                valor = valor.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+            } else if (valor.length > 2) {
+                valor = valor.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+            }
+            input.value = valor;
+        }
+
+        function aplicarMascaraCep(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor.length > 8) valor = valor.substring(0, 8);
+            valor = valor.replace(/^(\d{5})(\d)/, '$1-$2');
+            input.value = valor;
+        }
+
+        document.addEventListener('DOMContentLoaded', alternarTipoPessoa);
+    </script>
+}
