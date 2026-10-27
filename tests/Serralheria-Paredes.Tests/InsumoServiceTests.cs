@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using Serralheria_Paredes.Common.Pagination;
 using Microsoft.Extensions.Logging.Abstractions;
 using Serralheria_Paredes.Models;
@@ -65,11 +66,31 @@ public class InsumoServiceTests
         Assert.Equal(8, Assert.Single(movimentacoes.Items).OrdemServicoId);
     }
 
+    [Fact]
+    public async Task MovimentarAsync_deve_tratar_conflito_de_concorrencia()
+    {
+        var repository = new FakeInsumoRepository([new Insumo { Id = 1, EstoqueAtual = 10 }], true);
+        var service = new InsumoService(repository, new FakeMovimentacaoRepository(), NullLogger<InsumoService>.Instance);
+
+        var result = await service.MovimentarAsync(1, TipoMovimentacaoEstoque.Saida, 1, "Consumo");
+
+        Assert.False(result.Success);
+        Assert.Contains("outro usuário", result.Errors.Single());
+    }
+
     private sealed class FakeInsumoRepository : IInsumoRepository
     {
         private readonly List<Insumo> _items;
 
-        public FakeInsumoRepository(params Insumo[] items) => _items = items.ToList();
+        private readonly bool _throwConcurrency;
+
+        public FakeInsumoRepository(params Insumo[] items) : this(items, false) { }
+
+        public FakeInsumoRepository(IEnumerable<Insumo> items, bool throwConcurrency)
+        {
+            _items = items.ToList();
+            _throwConcurrency = throwConcurrency;
+        }
 
         public Task<Insumo?> GetByIdAsync(object id, CancellationToken cancellationToken = default) =>
             Task.FromResult(_items.FirstOrDefault(item => item.Id == Convert.ToInt32(id)));
@@ -101,7 +122,11 @@ public class InsumoServiceTests
 
         public void Remove(Insumo entity) => _items.Remove(entity);
 
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(1);
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            if (_throwConcurrency) throw new DbUpdateConcurrencyException();
+            return Task.FromResult(1);
+        }
 
         public Task<PagedResult<Insumo>> ObterTodosComFiltroAsync(string? termo, int pagina, int tamanho, CancellationToken cancellationToken = default) =>
             Task.FromResult(new PagedResult<Insumo>(_items, pagina, tamanho, _items.Count));
