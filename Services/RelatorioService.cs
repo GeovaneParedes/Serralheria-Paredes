@@ -1,4 +1,5 @@
 using Serralheria_Paredes.Repositories.Interfaces;
+using Serralheria_Paredes.Application.Reports;
 using Serralheria_Paredes.Services.Interfaces;
 
 namespace Serralheria_Paredes.Services;
