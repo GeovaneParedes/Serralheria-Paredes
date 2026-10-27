@@ -7,7 +7,8 @@ public interface IInsumoService : IService
 {
     Task<IReadOnlyList<InsumoResumo>> ListarAsync(string? termo = null, CancellationToken cancellationToken = default);
     Task<OperationResult<InsumoResumo>> CriarAsync(InsumoCadastro cadastro, CancellationToken cancellationToken = default);
-    Task<OperationResult> AjustarEstoqueAsync(int id, decimal quantidade, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<MovimentacaoResumo>> HistoricoAsync(int? insumoId = null, CancellationToken cancellationToken = default);
+    Task<OperationResult> MovimentarAsync(int id, TipoMovimentacaoEstoque tipo, decimal quantidade, string motivo, int? usuarioId = null, CancellationToken cancellationToken = default);
 }
 
 public sealed record InsumoCadastro(
@@ -31,3 +32,14 @@ public sealed record InsumoResumo(
     decimal CustoUnitario,
     bool EstoqueAbaixoDoMinimo,
     string? Fornecedor);
+
+public sealed record MovimentacaoResumo(
+    int Id,
+    int InsumoId,
+    string Insumo,
+    TipoMovimentacaoEstoque Tipo,
+    decimal Quantidade,
+    decimal SaldoAnterior,
+    decimal SaldoPosterior,
+    string Motivo,
+    DateTime CriadaEm);

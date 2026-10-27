@@ -15,6 +15,7 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Fornecedor> Fornecedores => Set<Fornecedor>();
     public DbSet<Insumo> Insumos => Set<Insumo>();
+    public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -135,6 +136,21 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
                 .WithMany()
                 .HasForeignKey(i => i.FornecedorId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<MovimentacaoEstoque>(b =>
+        {
+            b.ToTable("movimentacoes_estoque");
+            b.HasKey(m => m.Id);
+            b.Property(m => m.Quantidade).HasPrecision(12, 3);
+            b.Property(m => m.SaldoAnterior).HasPrecision(12, 3);
+            b.Property(m => m.SaldoPosterior).HasPrecision(12, 3);
+            b.Property(m => m.Motivo).HasMaxLength(250).IsRequired();
+            b.HasIndex(m => new { m.InsumoId, m.CreatedAt });
+            b.HasOne(m => m.Insumo)
+                .WithMany()
+                .HasForeignKey(m => m.InsumoId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
     }

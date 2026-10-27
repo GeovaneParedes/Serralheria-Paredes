@@ -1,4 +1,5 @@
 using Serralheria_Paredes.Models;
+using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Repositories.Interfaces;
 using Serralheria_Paredes.Services.Common;
 using Serralheria_Paredes.Services.Interfaces;
@@ -8,11 +9,16 @@ namespace Serralheria_Paredes.Services;
 public class InsumoService : IInsumoService
 {
     private readonly IInsumoRepository _repository;
+    private readonly IMovimentacaoEstoqueRepository _movimentacaoRepository;
     private readonly ILogger<InsumoService> _logger;
 
-    public InsumoService(IInsumoRepository repository, ILogger<InsumoService> logger)
+    public InsumoService(
+        IInsumoRepository repository,
+        IMovimentacaoEstoqueRepository movimentacaoRepository,
+        ILogger<InsumoService> logger)
     {
         _repository = repository;
+        _movimentacaoRepository = movimentacaoRepository;
         _logger = logger;
     }
 
@@ -49,17 +55,60 @@ public class InsumoService : IInsumoService
         return OperationResult<InsumoResumo>.Ok(Mapear(insumo), "Insumo cadastrado com sucesso.");
     }
 
-    public async Task<OperationResult> AjustarEstoqueAsync(int id, decimal quantidade, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<MovimentacaoResumo>> HistoricoAsync(int? insumoId = null, CancellationToken cancellationToken = default)
     {
+        var movimentacoes = await _movimentacaoRepository.ObterHistoricoAsync(insumoId, cancellationToken);
+        return movimentacoes.Select(m => new MovimentacaoResumo(
+            m.Id,
+            m.InsumoId,
+            m.Insumo.Descricao,
+            m.Tipo,
+            m.Quantidade,
+            m.SaldoAnterior,
+            m.SaldoPosterior,
+            m.Motivo,
+            m.CreatedAt)).ToList();
+    }
+
+    public async Task<OperationResult> MovimentarAsync(
+        int id,
+        TipoMovimentacaoEstoque tipo,
+        decimal quantidade,
+        string motivo,
+        int? usuarioId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (quantidade <= 0) return OperationResult.Fail("A quantidade deve ser maior que zero.");
+        if (string.IsNullOrWhiteSpace(motivo)) return OperationResult.Fail("O motivo da movimentação é obrigatório.");
+        if (!Enum.IsDefined(tipo)) return OperationResult.Fail("Tipo de movimentação inválido.");
+
         var insumo = await _repository.GetByIdAsync(id, cancellationToken);
         if (insumo == null) return OperationResult.Fail("Insumo não encontrado.");
-        if (insumo.EstoqueAtual + quantidade < 0) return OperationResult.Fail("O estoque não pode ficar negativo.");
 
-        insumo.EstoqueAtual += quantidade;
+        var saldoAnterior = insumo.EstoqueAtual;
+        var saldoPosterior = tipo == TipoMovimentacaoEstoque.Saida
+            ? saldoAnterior - quantidade
+            : saldoAnterior + quantidade;
+        if (saldoPosterior < 0) return OperationResult.Fail("O estoque não pode ficar negativo.");
+
+        insumo.EstoqueAtual = saldoPosterior;
         insumo.UpdatedAt = DateTime.UtcNow;
+        var movimentacao = new MovimentacaoEstoque
+        {
+            InsumoId = insumo.Id,
+            Tipo = tipo,
+            Quantidade = quantidade,
+            SaldoAnterior = saldoAnterior,
+            SaldoPosterior = saldoPosterior,
+            Motivo = motivo.Trim(),
+            UsuarioId = usuarioId
+        };
+
         _repository.Update(insumo);
+        await _movimentacaoRepository.AddAsync(movimentacao, cancellationToken);
         await _repository.SaveChangesAsync(cancellationToken);
-        return OperationResult.Ok("Estoque ajustado com sucesso.");
+        _logger.LogInformation("Movimentação {Tipo} registrada para o insumo {InsumoId}: {Quantidade}", tipo, id, quantidade);
+        return OperationResult.Ok("Movimentação registrada com sucesso.");
     }
 
     private static InsumoResumo Mapear(Insumo insumo) => new(

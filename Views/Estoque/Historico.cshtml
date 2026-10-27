@@ -1,0 +1,44 @@
+@model IReadOnlyList<MovimentacaoResumo>
+@{
+    ViewData["Title"] = "Histórico de Estoque";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">Histórico de movimentações</h2>
+            <p class="text-muted mb-0">Rastreabilidade dos saldos registrados.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">Voltar ao estoque</a>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr><th>Data</th><th>Insumo</th><th>Tipo</th><th>Quantidade</th><th>Saldo anterior</th><th>Saldo posterior</th><th>Motivo</th></tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma movimentação registrada.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CriadaEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@item.Insumo</td>
+                                <td>@item.Tipo</td>
+                                <td>@item.Quantidade.ToString("N3")</td>
+                                <td>@item.SaldoAnterior.ToString("N3")</td>
+                                <td>@item.SaldoPosterior.ToString("N3")</td>
+                                <td>@item.Motivo</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
