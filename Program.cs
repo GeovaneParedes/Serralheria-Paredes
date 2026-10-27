@@ -68,6 +68,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // 4. Injeção de Dependência das Camadas Base (Repositories & Services)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
