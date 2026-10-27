@@ -1,4 +1,5 @@
 using Serralheria_Paredes.Models;
+using Microsoft.EntityFrameworkCore;
 using Serralheria_Paredes.Common.Pagination;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Repositories.Interfaces;
@@ -134,9 +135,17 @@ public class InsumoService : IInsumoService
             OrdemServicoId = ordemServicoId
         };
 
-        _repository.Update(insumo);
-        await _movimentacaoRepository.AddAsync(movimentacao, cancellationToken);
-        await _repository.SaveChangesAsync(cancellationToken);
+        try
+        {
+            _repository.Update(insumo);
+            await _movimentacaoRepository.AddAsync(movimentacao, cancellationToken);
+            await _repository.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            _logger.LogWarning("Conflito de concorrência ao movimentar o insumo {InsumoId}", id);
+            return OperationResult.Fail("O estoque foi alterado por outro usuário. Atualize a tela e tente novamente.");
+        }
         _logger.LogInformation("Movimentação {Tipo} registrada para o insumo {InsumoId}: {Quantidade}", tipo, id, quantidade);
         return OperationResult.Ok("Movimentação registrada com sucesso.");
     }

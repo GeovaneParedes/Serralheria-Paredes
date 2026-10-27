@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Serralheria_Paredes.Models;
 using Serralheria_Paredes.Models.Common;
 
@@ -127,6 +128,7 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
         modelBuilder.Entity<Insumo>(b =>
         {
             b.ToTable("insumos");
+            b.Property<uint>("xmin").IsRowVersion();
             b.HasKey(i => i.Id);
             b.Property(i => i.Codigo).HasMaxLength(40).IsRequired();
             b.Property(i => i.Descricao).HasMaxLength(150).IsRequired();
