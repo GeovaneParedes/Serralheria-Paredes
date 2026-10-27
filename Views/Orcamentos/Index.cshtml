@@ -1,0 +1,67 @@
+@model OrcamentoIndexViewModel
+@{
+    ViewData["Title"] = "Orçamentos";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">🧾 Orçamentos</h2>
+            <p class="text-muted mb-0">Calcule materiais, margem e transforme aprovações em ordens de serviço.</p>
+        </div>
+        <a asp-action="Novo" class="btn btn-primary">Novo orçamento</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr><th>Número</th><th>Cliente</th><th>Título</th><th>Status</th><th>Total</th><th>Validade</th><th class="text-end">Ação</th></tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Orcamentos.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">Nenhum orçamento cadastrado.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var orcamento in Model.Orcamentos)
+                        {
+                            <tr>
+                                <td><strong>@orcamento.Numero</strong></td>
+                                <td>@orcamento.Cliente</td>
+                                <td>@orcamento.Titulo</td>
+                                <td><span class="badge bg-secondary">@orcamento.Status</span></td>
+                                <td>@orcamento.ValorTotal.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
+                                <td>@orcamento.ValidoAte.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    @if (!orcamento.PossuiOrdemServico && orcamento.Status != StatusOrcamento.Recusado && orcamento.Status != StatusOrcamento.Expirado)
+                                    {
+                                        <form asp-action="Aprovar" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@orcamento.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success">Aprovar e gerar OS</button>
+                                        </form>
+                                    }
+                                    else if (orcamento.PossuiOrdemServico)
+                                    {
+                                        <span class="text-success small">OS criada</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

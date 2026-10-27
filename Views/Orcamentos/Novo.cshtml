@@ -1,0 +1,83 @@
+@model OrcamentoFormViewModel
+@{
+    ViewData["Title"] = "Novo Orçamento";
+    var clientes = ViewBag.Clientes as IReadOnlyList<ClienteViewModel> ?? Array.Empty<ClienteViewModel>();
+}
+
+<div class="container py-4">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 900px;">
+        <div class="card-body p-4">
+            <h2 class="fw-bold mb-1">Novo orçamento</h2>
+            <p class="text-muted mb-4">Informe o material, consumo, mão de obra e margem.</p>
+            <form asp-action="Criar" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label asp-for="ClienteId" class="form-label"></label>
+                        <select asp-for="ClienteId" class="form-select">
+                            <option value="">Selecione um cliente</option>
+                            @foreach (var cliente in clientes)
+                            {
+                                <option value="@cliente.Id">@cliente.NomeOuRazaoSocial</option>
+                            }
+                        </select>
+                        <span asp-validation-for="ClienteId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-5">
+                        <label asp-for="ValidoAte" class="form-label"></label>
+                        <input asp-for="ValidoAte" class="form-control" />
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Titulo" class="form-label"></label>
+                        <input asp-for="Titulo" class="form-control" placeholder="Ex.: Portão de correr" />
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Descricao" class="form-label"></label>
+                        <textarea asp-for="Descricao" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-12"><h5 class="border-bottom pb-2 mt-2">Primeiro item de material</h5></div>
+                    <div class="col-md-6">
+                        <label asp-for="Itens[0].Descricao" class="form-label">Descrição</label>
+                        <input asp-for="Itens[0].Descricao" class="form-control" placeholder="Ex.: Perfil de alumínio 25 mm" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Itens[0].Quantidade" class="form-label"></label>
+                        <input asp-for="Itens[0].Quantidade" class="form-control" step="0.001" />
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="Itens[0].Unidade" class="form-label"></label>
+                        <select asp-for="Itens[0].Unidade" asp-items="Html.GetEnumSelectList<UnidadeMedida>()" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-label"></label>
+                        <input asp-for="Itens[0].ComprimentoUnitarioMetros" class="form-control" step="0.001" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Itens[0].CustoUnitario" class="form-label"></label>
+                        <input asp-for="Itens[0].CustoUnitario" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Itens[0].PercentualPerda" class="form-label"></label>
+                        <input asp-for="Itens[0].PercentualPerda" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ValorMaoDeObra" class="form-label"></label>
+                        <input asp-for="ValorMaoDeObra" class="form-control" step="0.01" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PercentualMargem" class="form-label"></label>
+                        <input asp-for="PercentualMargem" class="form-control" step="0.01" />
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button class="btn btn-primary" type="submit">Salvar orçamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

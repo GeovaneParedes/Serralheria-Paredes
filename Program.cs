@@ -66,10 +66,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
 builder.Services.AddScoped<IInsumoRepository, InsumoRepository>();
+builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
 builder.Services.AddScoped<IMovimentacaoEstoqueRepository, MovimentacaoEstoqueRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IFornecedorService, FornecedorService>();
 builder.Services.AddScoped<IInsumoService, InsumoService>();
+builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
 
 // 5. Segurança: Proteção CSRF / Antiforgery com Cookies Seguros
 builder.Services.AddAntiforgery(options =>
