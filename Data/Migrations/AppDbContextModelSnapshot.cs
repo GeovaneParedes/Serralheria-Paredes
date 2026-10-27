@@ -373,6 +373,66 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.ToTable("insumos", (string)null);
                 });
 
+            modelBuilder.Entity("Serralheria_Paredes.Models.ItemOrcamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("ComprimentoUnitarioMetros")
+                        .HasPrecision(10, 3)
+                        .HasColumnType("numeric(10,3)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("CustoUnitario")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("InsumoId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("OrcamentoId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PercentualPerda")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<decimal>("Quantidade")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<int>("Unidade")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InsumoId");
+
+                    b.HasIndex("OrcamentoId");
+
+                    b.ToTable("itens_orcamento", (string)null);
+                });
+
             modelBuilder.Entity("Serralheria_Paredes.Models.MovimentacaoEstoque", b =>
                 {
                     b.Property<int>("Id")
@@ -421,6 +481,118 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.HasIndex("InsumoId", "CreatedAt");
 
                     b.ToTable("movimentacoes_estoque", (string)null);
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.Orcamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal>("PercentualMargem")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("SubtotalMateriais")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ValidoAte")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("ValorMaoDeObra")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<decimal>("ValorTotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("Numero")
+                        .IsUnique();
+
+                    b.ToTable("orcamentos", (string)null);
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.OrdemServico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DataPrevistaEntrega")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ObservacoesProducao")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("OrcamentoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Numero")
+                        .IsUnique();
+
+                    b.HasIndex("OrcamentoId")
+                        .IsUnique();
+
+                    b.ToTable("ordens_servico", (string)null);
                 });
 
             modelBuilder.Entity("Serralheria_Paredes.Models.Perfil", b =>
@@ -602,6 +774,24 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.Navigation("Fornecedor");
                 });
 
+            modelBuilder.Entity("Serralheria_Paredes.Models.ItemOrcamento", b =>
+                {
+                    b.HasOne("Serralheria_Paredes.Models.Insumo", "Insumo")
+                        .WithMany()
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Serralheria_Paredes.Models.Orcamento", "Orcamento")
+                        .WithMany("Itens")
+                        .HasForeignKey("OrcamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("Orcamento");
+                });
+
             modelBuilder.Entity("Serralheria_Paredes.Models.MovimentacaoEstoque", b =>
                 {
                     b.HasOne("Serralheria_Paredes.Models.Insumo", "Insumo")
@@ -611,6 +801,35 @@ namespace Serralheria_Paredes.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Insumo");
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.Orcamento", b =>
+                {
+                    b.HasOne("Serralheria_Paredes.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.OrdemServico", b =>
+                {
+                    b.HasOne("Serralheria_Paredes.Models.Orcamento", "Orcamento")
+                        .WithOne("OrdemServico")
+                        .HasForeignKey("Serralheria_Paredes.Models.OrdemServico", "OrcamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Orcamento");
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.Orcamento", b =>
+                {
+                    b.Navigation("Itens");
+
+                    b.Navigation("OrdemServico");
                 });
 #pragma warning restore 612, 618
         }
