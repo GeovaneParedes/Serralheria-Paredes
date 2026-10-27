@@ -19,3 +19,9 @@ Thumbs.db
 ## Environment & Secrets
 *.local.json
 appsettings.*.local.json
+
+## Fiscal Documents and QA Uploads
+*.pdf
+*.jpg
+*.jpeg
+*.png

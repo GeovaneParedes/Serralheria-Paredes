@@ -1,0 +1,60 @@
+@model NotaFiscalImportada?
+@{
+    ViewData["Title"] = "Importar Nota Fiscal";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">Importar nota fiscal</h2>
+            <p class="text-muted mb-0">Analise o DANFE antes de lançar a compra no estoque.</p>
+        </div>
+        <a asp-controller="Relatorios" asp-action="Index" class="btn btn-outline-secondary">Relatórios</a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="Importar" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <label class="form-label" for="arquivo">PDF textual da NF-e</label>
+                <div class="input-group">
+                    <input class="form-control" type="file" id="arquivo" name="arquivo" accept="application/pdf" required />
+                    <button class="btn btn-primary" type="submit">Analisar documento</button>
+                </div>
+                <small class="text-muted">O arquivo é analisado em memória e não é salvo automaticamente.</small>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null)
+    {
+        <div class="alert alert-warning">Revisão obrigatória: os dados abaixo são uma prévia extraída e ainda não alteraram estoque ou compras.</div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header fw-bold">Dados identificados</div>
+            <div class="card-body row g-3">
+                <div class="col-md-3"><small class="text-muted d-block">Arquivo</small>@Model.Arquivo</div>
+                <div class="col-md-3"><small class="text-muted d-block">Número</small>@(Model.Numero ?? "Não identificado")</div>
+                <div class="col-md-3"><small class="text-muted d-block">Chave de acesso</small>@(Model.ChaveAcesso ?? "Não identificada")</div>
+                <div class="col-md-3"><small class="text-muted d-block">Emitente</small>@(Model.Emitente ?? "Não identificado")</div>
+                <div class="col-md-3"><small class="text-muted d-block">CNPJ emitente</small>@(Model.CnpjEmitente ?? "Não identificado")</div>
+                <div class="col-md-3"><small class="text-muted d-block">Valor total</small>@(Model.ValorTotal?.ToString("C") ?? "Não identificado")</div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-bold">Itens identificados</div>
+            <div class="table-responsive">
+                <table class="table mb-0"><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Unitário</th><th>Total</th></tr></thead><tbody>
+                @foreach (var item in Model.Itens)
+                {
+                    <tr><td>@item.Codigo</td><td>@item.Descricao</td><td>@item.Quantidade</td><td>@item.ValorUnitario.ToString("C")</td><td>@item.ValorTotal.ToString("C")</td></tr>
+                }
+                </tbody></table>
+            </div>
+        </div>
+        @if (Model.Alertas.Any())
+        {
+            <ul class="alert alert-warning mt-3">@foreach (var alerta in Model.Alertas) { <li>@alerta</li> }</ul>
+        }
+    }
+</div>

@@ -40,6 +40,12 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Relatorios" asp-action="Index">📊 Relatórios</a>
                             </li>
+                            @if (User.IsInRole(PerfisConstantes.Administrador) || User.IsInRole(PerfisConstantes.Atendente))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="NotasFiscais" asp-action="Importar">🧾 Importar NF</a>
+                                </li>
+                            }
                             @if (User.IsInRole(PerfisConstantes.Administrador))
                             {
                                 <li class="nav-item">
