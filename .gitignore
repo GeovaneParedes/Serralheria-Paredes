@@ -1,0 +1,21 @@
+## Build and Output Folders
+bin/
+obj/
+out/
+
+## Visual Studio / VS Code / Rider
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## OS Generated
+.DS_Store
+Thumbs.db
+
+## Environment & Secrets
+*.local.json
+appsettings.*.local.json

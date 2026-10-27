@@ -1,0 +1,25 @@
+[Unit]
+Description=Serralheria-Paredes .NET 10 Web Application
+After=network.target postgresql.service
+
+[Service]
+WorkingDirectory=/var/www/serralheria-paredes
+ExecStart=/usr/bin/dotnet /var/www/serralheria-paredes/Serralheria-Paredes.dll
+Restart=always
+# Reinicia o serviço após 10 segundos caso o processo caia
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=serralheria-paredes
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+
+# Hardening do Systemd / Princípio do Menor Privilégio
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
