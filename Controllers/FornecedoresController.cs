@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serralheria_Paredes.Models.Constantes;
 using Serralheria_Paredes.Services.Interfaces;
 using Serralheria_Paredes.ViewModels.Cadastros;
 
 namespace Serralheria_Paredes.Controllers;
 
-[Authorize]
+[Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Atendente)]
 public class FornecedoresController : Controller
 {
     private readonly IFornecedorService _fornecedorService;

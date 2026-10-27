@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serralheria_Paredes.Models.Constantes;
 using System.Security.Claims;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Interfaces;
@@ -7,7 +8,7 @@ using Serralheria_Paredes.ViewModels.Estoque;
 
 namespace Serralheria_Paredes.Controllers;
 
-[Authorize]
+[Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Serralheiro)]
 public class EstoqueController : Controller
 {
     private readonly IInsumoService _insumoService;

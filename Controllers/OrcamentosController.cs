@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Serralheria_Paredes.Models.Constantes;
 using Serralheria_Paredes.Models.Enums;
 using Serralheria_Paredes.Services.Interfaces;
 using Serralheria_Paredes.ViewModels.Orcamentos;
 
 namespace Serralheria_Paredes.Controllers;
 
-[Authorize]
+[Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Atendente + "," + PerfisConstantes.Serralheiro)]
 public class OrcamentosController : Controller
 {
     private readonly IOrcamentoService _orcamentoService;
@@ -44,6 +45,7 @@ public class OrcamentosController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Atendente)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Criar(OrcamentoFormViewModel model)
     {
@@ -66,6 +68,7 @@ public class OrcamentosController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Atendente)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Aprovar(int id)
     {
@@ -77,6 +80,7 @@ public class OrcamentosController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Serralheiro)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AtualizarStatus(int id, StatusOrdemServico status)
     {
@@ -86,6 +90,7 @@ public class OrcamentosController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = PerfisConstantes.Administrador + "," + PerfisConstantes.Serralheiro)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Consumir(int id, int insumoId, decimal quantidade)
     {
