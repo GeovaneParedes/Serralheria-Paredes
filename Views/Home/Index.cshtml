@@ -1,8 +1,102 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Painel Principal - Serralheria-Paredes";
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="py-3">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            ✅ @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="p-5 mb-4 bg-dark text-white rounded-4 shadow">
+        <div class="container-fluid py-2">
+            <h1 class="display-5 fw-bold mb-2">⚙️ Serralheria-Paredes</h1>
+            <p class="col-md-9 fs-5 text-secondary">
+                Sistema Integrado de Gestão de Produção, Estoque Metalúrgico, Orçamentos e Ordens de Serviço.
+            </p>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="d-inline-flex align-items-center bg-secondary bg-opacity-25 px-4 py-2 rounded-pill mt-2">
+                    <span class="me-2">👤 Olá, <strong>@User.Identity.Name</strong></span>
+                    @if (User.IsInRole(PerfisConstantes.Administrador))
+                    {
+                        <span class="badge bg-danger">Administrador</span>
+                    }
+                    else if (User.IsInRole(PerfisConstantes.Serralheiro))
+                    {
+                        <span class="badge bg-warning text-dark">Serralheiro</span>
+                    }
+                    else if (User.IsInRole(PerfisConstantes.Atendente))
+                    {
+                        <span class="badge bg-info text-dark">Atendente</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <a asp-controller="Auth" asp-action="Login" class="btn btn-primary btn-lg mt-2 fw-bold px-4 rounded-pill">
+                    Acessar o Sistema ➔
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4 py-2">
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
+                    <div class="display-6 mb-3">🔐</div>
+                    <h5 class="fw-bold">Autenticação & Perfis</h5>
+                    <p class="text-muted small">Controle de acessos, administradores, serralheiros e atendentes com segurança OWASP.</p>
+                    @if (User.IsInRole(PerfisConstantes.Administrador))
+                    {
+                        <a asp-controller="Auth" asp-action="Usuarios" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            Gerenciar Usuários
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success">Módulo Ativo</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
+                    <div class="display-6 mb-3">👥</div>
+                    <h5 class="fw-bold">Clientes & Fornecedores</h5>
+                    <p class="text-muted small">Cadastro completo PF e PJ, máscaras de documentos e histórico comercial.</p>
+                    <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">Próximo Módulo (2)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
+                    <div class="display-6 mb-3">📦</div>
+                    <h5 class="fw-bold">Estoque & Insumos</h5>
+                    <p class="text-muted small">Perfis de alumínio, tubos, chapas, controle de barras e aproveitamento de sobras.</p>
+                    <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">Planejado (Módulo 3)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
+                    <div class="display-6 mb-3">📐</div>
+                    <h5 class="fw-bold">Orçamentos & OS</h5>
+                    <p class="text-muted small">Cálculo automatizado de corte, precificação e acompanhamento de ordens de fabricação.</p>
+                    <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">Planejado (Módulo 4)</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

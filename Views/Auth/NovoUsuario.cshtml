@@ -1,0 +1,96 @@
+@model NovoUsuarioViewModel
+@{
+    ViewData["Title"] = "Cadastrar Novo Colaborador";
+    Layout = "_Layout";
+    var perfis = ViewBag.Perfis as IReadOnlyList<string> ?? new List<string>();
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4">
+                    <h5 class="mb-0 fw-bold">➕ Cadastrar Novo Colaborador</h5>
+                    <small class="text-secondary">Defina as credenciais e nível de acesso</small>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <div asp-validation-summary="ModelOnly" class="mb-0"></div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="NovoUsuario" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="NomeCompleto" class="form-label fw-semibold"></label>
+                            <input asp-for="NomeCompleto" class="form-control" placeholder="Ex: Carlos da Silva" />
+                            <span asp-validation-for="NomeCompleto" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <input asp-for="Email" class="form-control" placeholder="carlos@serralheria.com.br" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label asp-for="Cargo" class="form-label fw-semibold"></label>
+                                <input asp-for="Cargo" class="form-control" placeholder="Ex: Serralheiro Chefe / Vendedor" />
+                                <span asp-validation-for="Cargo" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Perfil" class="form-label fw-semibold"></label>
+                            <select asp-for="Perfil" class="form-select">
+                                <option value="">-- Selecione o Perfil de Acesso --</option>
+                                @foreach (var p in perfis)
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Perfil" class="text-danger small"></span>
+                            <div class="form-text">
+                                <strong>Administrador:</strong> Acesso total. &middot;
+                                <strong>Serralheiro:</strong> Produção e Ordens de Serviço. &middot;
+                                <strong>Atendente:</strong> Clientes e Orçamentos.
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Senha" class="form-label fw-semibold"></label>
+                                <input asp-for="Senha" class="form-control" placeholder="Mínimo 8 caracteres" />
+                                <span asp-validation-for="Senha" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ConfirmarSenha" class="form-label fw-semibold"></label>
+                                <input asp-for="ConfirmarSenha" class="form-control" placeholder="Repita a senha" />
+                                <span asp-validation-for="ConfirmarSenha" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-2">
+                            <a asp-action="Usuarios" class="btn btn-outline-secondary">
+                                ← Voltar para Lista
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                Salvar Colaborador
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
