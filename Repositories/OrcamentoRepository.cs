@@ -19,6 +19,7 @@ public class OrcamentoRepository : Repository<Orcamento>, IOrcamentoRepository
             .Include(o => o.Itens)
             .ThenInclude(i => i.Insumo)
             .Include(o => o.OrdemServico)
+                .ThenInclude(o => o!.Historico)
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
 
     public Task<bool> NumeroJaCadastradoAsync(string numero, CancellationToken cancellationToken = default) =>

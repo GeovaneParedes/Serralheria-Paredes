@@ -309,6 +309,46 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.ToTable("fornecedores", (string)null);
                 });
 
+            modelBuilder.Entity("Serralheria_Paredes.Models.HistoricoOrdemServico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrdemServicoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusAnterior")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StatusNovo")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrdemServicoId", "CreatedAt");
+
+                    b.ToTable("historico_ordens_servico", (string)null);
+                });
+
             modelBuilder.Entity("Serralheria_Paredes.Models.Insumo", b =>
                 {
                     b.Property<int>("Id")
@@ -764,6 +804,17 @@ namespace Serralheria_Paredes.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Serralheria_Paredes.Models.HistoricoOrdemServico", b =>
+                {
+                    b.HasOne("Serralheria_Paredes.Models.OrdemServico", "OrdemServico")
+                        .WithMany("Historico")
+                        .HasForeignKey("OrdemServicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrdemServico");
+                });
+
             modelBuilder.Entity("Serralheria_Paredes.Models.Insumo", b =>
                 {
                     b.HasOne("Serralheria_Paredes.Models.Fornecedor", "Fornecedor")
@@ -830,6 +881,11 @@ namespace Serralheria_Paredes.Data.Migrations
                     b.Navigation("Itens");
 
                     b.Navigation("OrdemServico");
+                });
+
+            modelBuilder.Entity("Serralheria_Paredes.Models.OrdemServico", b =>
+                {
+                    b.Navigation("Historico");
                 });
 #pragma warning restore 612, 618
         }

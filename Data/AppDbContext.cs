@@ -19,6 +19,7 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
     public DbSet<Orcamento> Orcamentos => Set<Orcamento>();
     public DbSet<ItemOrcamento> ItensOrcamento => Set<ItemOrcamento>();
     public DbSet<OrdemServico> OrdensServico => Set<OrdemServico>();
+    public DbSet<HistoricoOrdemServico> HistoricosOrdensServico => Set<HistoricoOrdemServico>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -206,6 +207,18 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
                 .WithOne(o => o.OrdemServico)
                 .HasForeignKey<OrdemServico>(o => o.OrcamentoId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<HistoricoOrdemServico>(b =>
+        {
+            b.ToTable("historico_ordens_servico");
+            b.HasKey(h => h.Id);
+            b.Property(h => h.Observacao).HasMaxLength(500);
+            b.HasIndex(h => new { h.OrdemServicoId, h.CreatedAt });
+            b.HasOne(h => h.OrdemServico)
+                .WithMany(o => o.Historico)
+                .HasForeignKey(h => h.OrdemServicoId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
     }
