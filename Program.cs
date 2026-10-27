@@ -81,6 +81,7 @@ builder.Services.AddScoped<IInsumoService, InsumoService>();
 builder.Services.AddScoped<IOrcamentoService, OrcamentoService>();
 builder.Services.AddScoped<IRelatorioRepository, RelatorioRepository>();
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+builder.Services.AddScoped<INotaFiscalImportService, NotaFiscalImportService>();
 
 // 5. Segurança: Proteção CSRF / Antiforgery com Cookies Seguros
 builder.Services.AddAntiforgery(options =>
