@@ -495,6 +495,9 @@ namespace Serralheria_Paredes.Data.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("character varying(250)");
 
+                    b.Property<int?>("OrdemServicoId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("Quantidade")
                         .HasPrecision(12, 3)
                         .HasColumnType("numeric(12,3)");
@@ -517,6 +520,8 @@ namespace Serralheria_Paredes.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrdemServicoId");
 
                     b.HasIndex("InsumoId", "CreatedAt");
 
@@ -851,7 +856,14 @@ namespace Serralheria_Paredes.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Serralheria_Paredes.Models.OrdemServico", "OrdemServico")
+                        .WithMany("MovimentacoesEstoque")
+                        .HasForeignKey("OrdemServicoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Insumo");
+
+                    b.Navigation("OrdemServico");
                 });
 
             modelBuilder.Entity("Serralheria_Paredes.Models.Orcamento", b =>
@@ -886,6 +898,8 @@ namespace Serralheria_Paredes.Data.Migrations
             modelBuilder.Entity("Serralheria_Paredes.Models.OrdemServico", b =>
                 {
                     b.Navigation("Historico");
+
+                    b.Navigation("MovimentacoesEstoque");
                 });
 #pragma warning restore 612, 618
         }

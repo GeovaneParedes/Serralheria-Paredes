@@ -10,16 +10,19 @@ public class InsumoService : IInsumoService
 {
     private readonly IInsumoRepository _repository;
     private readonly IMovimentacaoEstoqueRepository _movimentacaoRepository;
+    private readonly IRepository<OrdemServico>? _ordemRepository;
     private readonly ILogger<InsumoService> _logger;
 
     public InsumoService(
         IInsumoRepository repository,
         IMovimentacaoEstoqueRepository movimentacaoRepository,
-        ILogger<InsumoService> logger)
+        ILogger<InsumoService> logger,
+        IRepository<OrdemServico>? ordemRepository = null)
     {
         _repository = repository;
         _movimentacaoRepository = movimentacaoRepository;
         _logger = logger;
+        _ordemRepository = ordemRepository;
     }
 
     public async Task<IReadOnlyList<InsumoResumo>> ListarAsync(string? termo = null, CancellationToken cancellationToken = default)
@@ -78,6 +81,30 @@ public class InsumoService : IInsumoService
         int? usuarioId = null,
         CancellationToken cancellationToken = default)
     {
+        return await RegistrarMovimentacaoAsync(id, tipo, quantidade, motivo, usuarioId, null, cancellationToken);
+    }
+
+    public async Task<OperationResult> ConsumirParaOrdemAsync(int ordemServicoId, int insumoId, decimal quantidade, int? usuarioId = null, CancellationToken cancellationToken = default)
+    {
+        if (_ordemRepository == null) return OperationResult.Fail("Repositório de ordem de serviço não configurado.");
+        var ordem = await _ordemRepository.GetByIdAsync(ordemServicoId, cancellationToken);
+        if (ordem == null) return OperationResult.Fail("Ordem de serviço não encontrada.");
+        if (ordem.Status is StatusOrdemServico.AguardandoProducao or StatusOrdemServico.Concluida or StatusOrdemServico.Cancelada)
+            return OperationResult.Fail("A OS precisa estar em uma etapa de produção para consumir material.");
+
+        return await RegistrarMovimentacaoAsync(insumoId, TipoMovimentacaoEstoque.Saida, quantidade,
+            $"Consumo na OS {ordem.Numero}", usuarioId, ordemServicoId, cancellationToken);
+    }
+
+    private async Task<OperationResult> RegistrarMovimentacaoAsync(
+        int id,
+        TipoMovimentacaoEstoque tipo,
+        decimal quantidade,
+        string motivo,
+        int? usuarioId,
+        int? ordemServicoId,
+        CancellationToken cancellationToken)
+    {
         if (quantidade <= 0) return OperationResult.Fail("A quantidade deve ser maior que zero.");
         if (string.IsNullOrWhiteSpace(motivo)) return OperationResult.Fail("O motivo da movimentação é obrigatório.");
         if (!Enum.IsDefined(tipo)) return OperationResult.Fail("Tipo de movimentação inválido.");
@@ -101,7 +128,8 @@ public class InsumoService : IInsumoService
             SaldoAnterior = saldoAnterior,
             SaldoPosterior = saldoPosterior,
             Motivo = motivo.Trim(),
-            UsuarioId = usuarioId
+            UsuarioId = usuarioId,
+            OrdemServicoId = ordemServicoId
         };
 
         _repository.Update(insumo);

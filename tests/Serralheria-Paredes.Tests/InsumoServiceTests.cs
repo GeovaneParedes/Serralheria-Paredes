@@ -45,6 +45,25 @@ public class InsumoServiceTests
         Assert.Empty(movimentacoes.Items);
     }
 
+    [Fact]
+    public async Task ConsumirParaOrdemAsync_deve_vincular_a_baixa_a_os_em_producao()
+    {
+        var insumo = new Insumo { Id = 1, Codigo = "PER-001", Descricao = "Perfil", EstoqueAtual = 10 };
+        var ordem = new OrdemServico { Id = 8, Numero = "OS-8", Status = StatusOrdemServico.EmCorte };
+        var movimentacoes = new FakeMovimentacaoRepository();
+        var service = new InsumoService(
+            new FakeInsumoRepository(insumo),
+            movimentacoes,
+            NullLogger<InsumoService>.Instance,
+            new FakeOrdemRepository(ordem));
+
+        var result = await service.ConsumirParaOrdemAsync(8, 1, 3);
+
+        Assert.True(result.Success);
+        Assert.Equal(7, insumo.EstoqueAtual);
+        Assert.Equal(8, Assert.Single(movimentacoes.Items).OrdemServicoId);
+    }
+
     private sealed class FakeInsumoRepository : IInsumoRepository
     {
         private readonly List<Insumo> _items;
@@ -129,5 +148,21 @@ public class InsumoServiceTests
 
         public Task<IReadOnlyList<MovimentacaoEstoque>> ObterHistoricoAsync(int? insumoId = null, CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<MovimentacaoEstoque>>(Items);
+    }
+
+    private sealed class FakeOrdemRepository : IRepository<OrdemServico>
+    {
+        private readonly OrdemServico _ordem;
+
+        public FakeOrdemRepository(OrdemServico ordem) => _ordem = ordem;
+        public Task<OrdemServico?> GetByIdAsync(object id, CancellationToken cancellationToken = default) => Task.FromResult<OrdemServico?>(_ordem.Id == Convert.ToInt32(id) ? _ordem : null);
+        public Task<IReadOnlyList<OrdemServico>> GetAllAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<OrdemServico>>([_ordem]);
+        public Task<IReadOnlyList<OrdemServico>> FindAsync(Expression<Func<OrdemServico, bool>> predicate, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<OrdemServico>>([_ordem]);
+        public Task<bool> ExistsAsync(Expression<Func<OrdemServico, bool>> predicate, CancellationToken cancellationToken = default) => Task.FromResult(true);
+        public Task AddAsync(OrdemServico entity, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task AddRangeAsync(IEnumerable<OrdemServico> entities, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public void Update(OrdemServico entity) { }
+        public void Remove(OrdemServico entity) { }
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(1);
     }
 }

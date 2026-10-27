@@ -12,4 +12,5 @@ public class OrdemServico : BaseEntity
     public DateTime? DataPrevistaEntrega { get; set; }
     public string? ObservacoesProducao { get; set; }
     public ICollection<HistoricoOrdemServico> Historico { get; set; } = new List<HistoricoOrdemServico>();
+    public ICollection<MovimentacaoEstoque> MovimentacoesEstoque { get; set; } = new List<MovimentacaoEstoque>();
 }
