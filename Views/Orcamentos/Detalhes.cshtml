@@ -59,5 +59,23 @@
                 </form>
             </div>
         </div>
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header fw-bold">Histórico da produção</div>
+            <div class="card-body">
+                @if (!Model.Historico.Any())
+                {
+                    <span class="text-muted">Nenhuma alteração de etapa registrada.</span>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var evento in Model.Historico)
+                        {
+                            <li class="list-group-item px-0">@evento.CriadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm") · @evento.StatusAnterior → @evento.StatusNovo <span class="text-muted">@evento.Observacao</span></li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
     }
 </div>

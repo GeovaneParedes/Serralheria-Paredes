@@ -9,12 +9,14 @@ namespace Serralheria_Paredes.Services;
 public class OrcamentoService : IOrcamentoService
 {
     private readonly IOrcamentoRepository _repository;
+    private readonly IHistoricoOrdemServicoRepository _historicoRepository;
     private readonly ILogger<OrcamentoService> _logger;
 
-    public OrcamentoService(IOrcamentoRepository repository, ILogger<OrcamentoService> logger)
+    public OrcamentoService(IOrcamentoRepository repository, ILogger<OrcamentoService> logger, IHistoricoOrdemServicoRepository? historicoRepository = null)
     {
         _repository = repository;
         _logger = logger;
+        _historicoRepository = historicoRepository!;
     }
 
     public async Task<IReadOnlyList<OrcamentoResumo>> ListarAsync(CancellationToken cancellationToken = default) =>
@@ -104,8 +106,20 @@ public class OrcamentoService : IOrcamentoService
         if (orcamento?.OrdemServico == null) return OperationResult.Fail("Ordem de serviço não encontrada.");
         if (orcamento.Status != StatusOrcamento.Aprovado) return OperationResult.Fail("O orçamento ainda não foi aprovado.");
 
+        var statusAnterior = orcamento.OrdemServico.Status;
+        if (statusAnterior == status) return OperationResult.Fail("A OS já está nesta etapa.");
         orcamento.OrdemServico.Status = status;
         orcamento.OrdemServico.UpdatedAt = DateTime.UtcNow;
+        if (_historicoRepository != null)
+        {
+            await _historicoRepository.AddAsync(new HistoricoOrdemServico
+            {
+                OrdemServicoId = orcamento.OrdemServico.Id,
+                StatusAnterior = statusAnterior,
+                StatusNovo = status,
+                Observacao = $"Etapa alterada de {statusAnterior} para {status}."
+            }, cancellationToken);
+        }
         _repository.Update(orcamento);
         await _repository.SaveChangesAsync(cancellationToken);
         return OperationResult.Ok("Status da ordem de serviço atualizado.");
@@ -128,5 +142,6 @@ public class OrcamentoService : IOrcamentoService
         orcamento.ValorMaoDeObra,
         orcamento.PercentualMargem,
         orcamento.Itens.Select(i => new ItemOrcamentoResumo(i.Descricao, i.Unidade, i.Quantidade, i.ComprimentoUnitarioMetros, i.PercentualPerda, i.CustoUnitario, i.Subtotal)).ToList(),
-        orcamento.OrdemServico == null ? null : new OrdemServicoResumo(orcamento.OrdemServico.Numero, orcamento.OrdemServico.Status, orcamento.OrdemServico.DataPrevistaEntrega, orcamento.OrdemServico.ObservacoesProducao));
+            orcamento.OrdemServico == null ? null : new OrdemServicoResumo(orcamento.OrdemServico.Numero, orcamento.OrdemServico.Status, orcamento.OrdemServico.DataPrevistaEntrega, orcamento.OrdemServico.ObservacoesProducao),
+            orcamento.OrdemServico?.Historico.Select(h => new HistoricoOrdemServicoResumo(h.StatusAnterior, h.StatusNovo, h.Observacao, h.CreatedAt)).ToList() ?? []);
 }

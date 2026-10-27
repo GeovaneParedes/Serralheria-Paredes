@@ -47,7 +47,8 @@ public sealed record OrcamentoDetalhe(
     decimal ValorMaoDeObra,
     decimal PercentualMargem,
     IReadOnlyList<ItemOrcamentoResumo> Itens,
-    OrdemServicoResumo? OrdemServico);
+    OrdemServicoResumo? OrdemServico,
+    IReadOnlyList<HistoricoOrdemServicoResumo> Historico);
 
 public sealed record ItemOrcamentoResumo(
     string Descricao,
@@ -63,3 +64,9 @@ public sealed record OrdemServicoResumo(
     StatusOrdemServico Status,
     DateTime? DataPrevistaEntrega,
     string? ObservacoesProducao);
+
+public sealed record HistoricoOrdemServicoResumo(
+    StatusOrdemServico StatusAnterior,
+    StatusOrdemServico StatusNovo,
+    string? Observacao,
+    DateTime CriadoEm);

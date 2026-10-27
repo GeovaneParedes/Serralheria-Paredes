@@ -67,6 +67,7 @@ builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
 builder.Services.AddScoped<IInsumoRepository, InsumoRepository>();
 builder.Services.AddScoped<IOrcamentoRepository, OrcamentoRepository>();
+builder.Services.AddScoped<IHistoricoOrdemServicoRepository, HistoricoOrdemServicoRepository>();
 builder.Services.AddScoped<IMovimentacaoEstoqueRepository, MovimentacaoEstoqueRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IFornecedorService, FornecedorService>();
