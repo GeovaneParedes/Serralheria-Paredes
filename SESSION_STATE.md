@@ -1,44 +1,44 @@
 # SESSION_STATE - Serralheria-Paredes
 
 ## 1. O Que Foi Feito
-- Inicializada a branch de feature `feature/arquitetura-base-infraestrutura`.
-- Configurado arquivo `.gitignore` específico para ecossistema .NET / Linux.
-- Instalados os pacotes NuGet fundamentais:
-  - `Npgsql.EntityFrameworkCore.PostgreSQL` (v10.0.3)
-  - `Microsoft.EntityFrameworkCore.Design` (v10.0.14)
-- Estruturada a arquitetura em camadas MVC com separação estrita de responsabilidades:
-  - `Models/Common/BaseEntity.cs`: Entidade base com timestamps de auditoria (`CreatedAt`, `UpdatedAt`) e `IsActive`.
-  - `Data/AppDbContext.cs`: DbContext configurado com interceptor automático de auditoria e carregamento de configurações do assembly.
-  - `Repositories/Interfaces/IRepository.cs` e `Repositories/Repository.cs`: Padrão Generic Repository assíncrono.
-  - `Repositories/Interfaces/IUnitOfWork.cs` e `Repositories/UnitOfWork.cs`: Controle transacional e gerenciamento de repositórios.
-  - `Services/Common/OperationResult.cs`: Objeto de transferência de resultado desacoplado para manter Thin Controllers.
-  - `Services/Interfaces/IService.cs`: Interface base para injeção de dependência dos módulos de negócio.
-  - `ViewModels/ErrorViewModel.cs`: Isolamento de ViewModels fora da camada de Models (Domínio).
-  - `Middlewares/SecurityHeadersMiddleware.cs`: Injeção de cabeçalhos de segurança OWASP (CSP, HSTS, X-Frame-Options, X-Content-Type-Options).
-  - `Middlewares/GlobalExceptionHandlerMiddleware.cs`: Tratamento global com suporte a RFC 7807 (ProblemDetails para requisições AJAX/JSON) e redirecionamento MVC.
-- Reconfigurado `Program.cs` com suporte a proxy reverso Nginx (`ForwardedHeadersOptions`), Kestrel, DbContext e DI.
-- Atualizado `appsettings.json` com endpoint Kestrel (`http://localhost:5000`) e string de conexão do PostgreSQL.
-- Criado manifesto de configuração do Nginx em `infra/nginx/serralheria-paredes.conf` com suporte a Cloudflare (Full Strict SSL, `CF-Connecting-IP`, preservação de IP real, rate limiting e gzip).
-- Criado arquivo de serviço do systemd em `infra/systemd/serralheria-paredes.service` com hardening e execução não-root.
-- Modernizado e documentado o `README.md` com badges da stack (.NET 10, C# 13, EF Core, PostgreSQL, Nginx, Cloudflare, Ubuntu), fluxo arquitetural e instruções completas de execução local e produção.
+- **Fundação Arquitetural e Infraestrutura (Concluído & Merged em main):**
+  - Configuração de .NET 10, Npgsql (PostgreSQL), Kestrel na porta 5000, Nginx reverse proxy com suporte a Cloudflare e systemd service.
+  - Middlewares de segurança OWASP (`SecurityHeadersMiddleware`) e captura global de exceções (`GlobalExceptionHandlerMiddleware`).
+  - Generic Repository, Unit of Work e Result Pattern (`OperationResult`).
+- **Módulo 1: Autenticação e Perfis de Acesso (Concluído na branch `feature/modulo-autenticacao`):**
+  - Criada branch dedicada `feature/modulo-autenticacao`.
+  - Instalado o pacote `Microsoft.AspNetCore.Identity.EntityFrameworkCore` (v10.0.14).
+  - Modeladas as entidades de domínio `Usuario` (com `NomeCompleto`, `Cargo`, auditoria e `IsActive`) e `Perfil` (com `Descricao`).
+  - Definidas constantes de papéis do sistema em `PerfisConstantes` (`Administrador`, `Serralheiro`, `Atendente`).
+  - Atualizado `AppDbContext` herdando de `IdentityDbContext<Usuario, Perfil, int>` com mapeamento para convenções limpas do PostgreSQL (`usuarios`, `perfis`, `usuario_perfis`, etc.).
+  - Criadas ViewModels dedicadas: `LoginViewModel`, `NovoUsuarioViewModel`, `UsuarioViewModel`.
+  - Implementado `IAuthService` e `AuthService` com regras completas de login, logout, validação de bloqueio por tentativas (lockout), verificação de usuário ativo e invalidação de sessão ao desativar usuário (`UpdateSecurityStampAsync`).
+  - Implementado `IdentityDataSeeder` para auto-provisionamento dos perfis e administrador padrão (`admin@serralheriaparedes.com.br`).
+  - Desenvolvido `AuthController` seguindo padrão Thin Controller sem dependência direta do DbContext.
+  - Criadas as telas Razor completas e responsivas:
+    - `Views/Auth/Login.cshtml`: Tela de login com card moderno e tratamento de mensagens.
+    - `Views/Auth/Usuarios.cshtml`: Gestão de colaboradores com badges por perfil e ativação/desativação.
+    - `Views/Auth/NovoUsuario.cshtml`: Cadastro de funcionários com validação e atribuição de papel.
+    - `Views/Auth/AcessoNegado.cshtml`: Página de bloqueio de permissão HTTP 403.
+  - Atualizado `_Layout.cshtml` com cabeçalho de usuário logado e menu administrativo restrito.
+  - Modernizado `Home/Index.cshtml` para servir como Dashboard da Serralheria com atalhos para os 4 módulos.
+  - Gerada Migration inicial do EF Core: `Data/Migrations/20261027002236_CriarTabelasIdentity.cs`.
 
 ## 2. Decisões Tomadas
-- **Camada de Repositórios Genérica + UnitOfWork:** Desacopla o EF Core da camada de negócio e permite transações ACID consistentes em operações compostas.
-- **Thin Controllers com OperationResult:** Os Controllers delegam 100% da lógica para os Services e apenas tomam decisões de apresentação (View ou Redirect) inspecionando `OperationResult`.
-- **Proxy Reverso Nginx + Kestrel:** Kestrel escuta internamente em `127.0.0.1:5000` sem exposição direta à internet. O Nginx atua como proxy reverso gerenciando buffer, rate limit e terminação TLS com certificados Origin da Cloudflare.
-- **Tratamento de Headers no ASP.NET Core:** Utilizado `ForwardedHeadersOptions` com `KnownIPNetworks.Clear()` e `KnownProxies.Clear()` para suportar dinamicamente cabeçalhos vindos do Nginx/Cloudflare em ambiente Linux.
+- **ASP.NET Core Identity com PostgreSQL:** Optou-se pela robustez do Identity com chave primária inteira (`int`), hashing PBKDF2 (SHA-256) nativo, políticas de lockout contra brute-force (5 tentativas = 15 minutos de bloqueio) e cookies seguros (`__Host-Serralheria.Auth`, `SameSite=Strict`, `HttpOnly=true`).
+- **Invalidação Proativa de Sessão:** Ao desativar um colaborador no `AuthService`, o `SecurityStamp` do usuário é renovado imediatamente, invalidando qualquer cookie de sessão ativo no navegador do colaborador.
+- **Isolamento de Seed:** O `IdentityDataSeeder` roda na inicialização do aplicativo dentro de um bloco resiliente com log informativo, permitindo inicialização contínua mesmo se o banco estiver em provisionamento.
 
 ## 3. O Que Falta / Próximos Passos
-- Implementar o módulo de Autenticação/Autorização (ASP.NET Core Identity ou Cookies seguros com Hash PBKDF2/Argon2 para colaboradores e perfis de acesso: Administrador, Serralheiro, Atendente).
-- Iniciar a modelagem dos módulos centrais de negócio:
-  - Módulo 1: Gestão de Clientes e Fornecedores.
-  - Módulo 2: Catálogo de Perfis, Tubos, Chapas e Acessórios (Estoque/Insumos).
-  - Módulo 3: Orçamentos com cálculo automatizado de corte, metragem e margem.
-  - Módulo 4: Ordens de Serviço (OS) e fluxo de produção da serralheria.
-- Executar migrations iniciais do EF Core no PostgreSQL (`dotnet ef migrations add InitialCreate`).
+- Realizar o merge da branch `feature/modulo-autenticacao` após revisão do PR.
+- Iniciar o **Módulo 2: Clientes e Fornecedores** na branch `feature/modulo-cadastros`:
+  - Entidades `Cliente` e `Fornecedor` com suporte a Pessoa Física (CPF) e Pessoa Jurídica (CNPJ).
+  - Validação algorítmica de CPF e CNPJ (dígitos verificadores).
+  - Serviços de negócio (`IClienteService`, `IFornecedorService`).
+  - Interfaces de CRUD ricas com busca e paginação.
 
 ## 4. Estado Atual da Aplicação
 - **Build Status:** Compilação com êxito (0 erros, 0 avisos) via `dotnet build`.
 - **Target Framework:** .NET 10 (`net10.0`).
-- **Git Branch:** `feature/arquitetura-base-infraestrutura` (sincronizada e publicada em `origin`).
-- **Repositório Remoto:** `git@github.com:GeovaneParedes/Serralheria-Paredes.git`
+- **Git Branch:** `feature/modulo-autenticacao`.
+- **Repositório Remoto:** `git@github.com:GeovaneParedes/Serralheria-Paredes.git`.
