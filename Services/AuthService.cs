@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serralheria_Paredes.Data;
 using Serralheria_Paredes.Models;
 using Serralheria_Paredes.Models.Constantes;
 using Serralheria_Paredes.Services.Common;
@@ -10,24 +11,27 @@ namespace Serralheria_Paredes.Services;
 
 /// <summary>
 /// Implementação das regras de negócio de autenticação e gestão de usuários.
-/// Desacopla 100% os Controllers do ASP.NET Core Identity.
+/// Desacopla 100% os Controllers do ASP.NET Core Identity e provê consultas otimizadas sem tracking.
 /// </summary>
 public class AuthService : IAuthService
 {
     private readonly UserManager<Usuario> _userManager;
     private readonly SignInManager<Usuario> _signInManager;
     private readonly RoleManager<Perfil> _roleManager;
+    private readonly AppDbContext _context;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<Usuario> userManager,
         SignInManager<Usuario> signInManager,
         RoleManager<Perfil> roleManager,
+        AppDbContext context,
         ILogger<AuthService> logger)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -116,20 +120,41 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow
         };
 
-        var createResult = await _userManager.CreateAsync(user, model.Senha);
-        if (!createResult.Succeeded)
-        {
-            var errors = createResult.Errors.Select(e => e.Description);
-            _logger.LogWarning("Falha ao criar usuário {Email}: {Errors}", model.Email, string.Join(", ", errors));
-            return OperationResult<UsuarioViewModel>.Fail(errors);
-        }
+        // Garante atomicidade: se a atribuição do perfil falhar, o usuário não é persistido isolado
+        await using var transaction = _context.Database.IsRelational()
+            ? await _context.Database.BeginTransactionAsync(cancellationToken)
+            : null;
 
-        var addRoleResult = await _userManager.AddToRoleAsync(user, model.Perfil);
-        if (!addRoleResult.Succeeded)
+        try
         {
-            var errors = addRoleResult.Errors.Select(e => e.Description);
-            _logger.LogError("Usuário {Email} criado, mas falhou ao atribuir perfil {Perfil}: {Errors}", model.Email, model.Perfil, string.Join(", ", errors));
-            return OperationResult<UsuarioViewModel>.Fail(errors);
+            var createResult = await _userManager.CreateAsync(user, model.Senha);
+            if (!createResult.Succeeded)
+            {
+                if (transaction != null) await transaction.RollbackAsync(cancellationToken);
+                var errors = createResult.Errors.Select(e => e.Description);
+                _logger.LogWarning("Falha ao criar usuário {Email}: {Errors}", model.Email, string.Join(", ", errors));
+                return OperationResult<UsuarioViewModel>.Fail(errors);
+            }
+
+            var addRoleResult = await _userManager.AddToRoleAsync(user, model.Perfil);
+            if (!addRoleResult.Succeeded)
+            {
+                if (transaction != null) await transaction.RollbackAsync(cancellationToken);
+                var errors = addRoleResult.Errors.Select(e => e.Description);
+                _logger.LogError("Usuário {Email} criado, mas falhou ao atribuir perfil {Perfil}: {Errors}", model.Email, model.Perfil, string.Join(", ", errors));
+                return OperationResult<UsuarioViewModel>.Fail(errors);
+            }
+
+            if (transaction != null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            if (transaction != null) await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Erro inesperado ao registrar usuário {Email}", model.Email);
+            throw;
         }
 
         var viewModel = new UsuarioViewModel
@@ -149,55 +174,61 @@ public class AuthService : IAuthService
 
     public async Task<OperationResult<UsuarioViewModel>> ObterPorIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user == null)
+        var viewModel = await (from u in _context.Users.AsNoTracking()
+                               where u.Id == id
+                               join ur in _context.UserRoles.AsNoTracking() on u.Id equals ur.UserId into userRoles
+                               from ur in userRoles.DefaultIfEmpty()
+                               join r in _context.Roles.AsNoTracking() on ur.RoleId equals r.Id into roles
+                               from r in roles.DefaultIfEmpty()
+                               select new UsuarioViewModel
+                               {
+                                   Id = u.Id,
+                                   NomeCompleto = u.NomeCompleto,
+                                   Email = u.Email ?? string.Empty,
+                                   Cargo = u.Cargo,
+                                   Perfil = r != null ? r.Name! : "Sem Perfil",
+                                   IsActive = u.IsActive,
+                                   CreatedAt = u.CreatedAt
+                               }).FirstOrDefaultAsync(cancellationToken);
+
+        if (viewModel == null)
         {
             return OperationResult<UsuarioViewModel>.Fail("Usuário não encontrado.");
         }
-
-        var roles = await _userManager.GetRolesAsync(user);
-
-        var viewModel = new UsuarioViewModel
-        {
-            Id = user.Id,
-            NomeCompleto = user.NomeCompleto,
-            Email = user.Email ?? string.Empty,
-            Cargo = user.Cargo,
-            Perfil = roles.FirstOrDefault() ?? "Sem Perfil",
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt
-        };
 
         return OperationResult<UsuarioViewModel>.Ok(viewModel);
     }
 
     public async Task<IReadOnlyList<UsuarioViewModel>> ListarUsuariosAsync(CancellationToken cancellationToken = default)
     {
-        var users = await _userManager.Users
-            .OrderByDescending(u => u.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        var list = new List<UsuarioViewModel>();
-        foreach (var user in users)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            list.Add(new UsuarioViewModel
-            {
-                Id = user.Id,
-                NomeCompleto = user.NomeCompleto,
-                Email = user.Email ?? string.Empty,
-                Cargo = user.Cargo,
-                Perfil = roles.FirstOrDefault() ?? "Sem Perfil",
-                IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
-            });
-        }
-
-        return list;
+        // Projeção única em SQL evitando o problema de N+1 consultas
+        return await (from u in _context.Users.AsNoTracking()
+                      join ur in _context.UserRoles.AsNoTracking() on u.Id equals ur.UserId into userRoles
+                      from ur in userRoles.DefaultIfEmpty()
+                      join r in _context.Roles.AsNoTracking() on ur.RoleId equals r.Id into roles
+                      from r in roles.DefaultIfEmpty()
+                      orderby u.CreatedAt descending
+                      select new UsuarioViewModel
+                      {
+                          Id = u.Id,
+                          NomeCompleto = u.NomeCompleto,
+                          Email = u.Email ?? string.Empty,
+                          Cargo = u.Cargo,
+                          Perfil = r != null ? r.Name! : "Sem Perfil",
+                          IsActive = u.IsActive,
+                          CreatedAt = u.CreatedAt
+                      }).ToListAsync(cancellationToken);
     }
 
-    public async Task<OperationResult> AlterarStatusUsuarioAsync(int id, bool ativo, CancellationToken cancellationToken = default)
+    public async Task<OperationResult> AlterarStatusUsuarioAsync(int id, bool ativo, int? executanteId = null, CancellationToken cancellationToken = default)
     {
+        // Regra defensiva de segurança: impede auto-desativação do administrador logado
+        if (executanteId.HasValue && executanteId.Value == id && !ativo)
+        {
+            _logger.LogWarning("Tentativa de auto-desativação bloqueada para o usuário ID {Id}", id);
+            return OperationResult.Fail("Operação não permitida: você não pode desativar seu próprio usuário administrador.");
+        }
+
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
         {

@@ -4,7 +4,7 @@ namespace Serralheria_Paredes.Models.Common;
 /// Entidade base abstrata para todas as entidades persistidas no PostgreSQL.
 /// Garante auditoria básica (CreatedAt, UpdatedAt) e identificador único.
 /// </summary>
-public abstract class BaseEntity<TKey>
+public abstract class BaseEntity<TKey> : IAuditableEntity
 {
     public TKey Id { get; set; } = default!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Serralheria_Paredes.Models.Constantes;
 using Serralheria_Paredes.Services.Interfaces;
 using Serralheria_Paredes.ViewModels.Auth;
@@ -34,6 +36,7 @@ public class AuthController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthLoginRateLimit")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
@@ -118,7 +121,14 @@ public class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AlternarStatus(int id, bool ativo)
     {
-        var result = await _authService.AlterarStatusUsuarioAsync(id, ativo, HttpContext.RequestAborted);
+        int? executanteId = null;
+        var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(idClaim, out var parsedId))
+        {
+            executanteId = parsedId;
+        }
+
+        var result = await _authService.AlterarStatusUsuarioAsync(id, ativo, executanteId, HttpContext.RequestAborted);
         if (!result.Success)
         {
             TempData["ErrorMessage"] = string.Join("; ", result.Errors);
