@@ -47,19 +47,28 @@ O projeto segue estritamente a separação em camadas com **Thin Controllers**, 
 [ Kestrel (.NET 10 - ASP.NET Core) ]
          ├── ForwardedHeaders (Restauração do IP real do cliente)
          ├── SecurityHeaders (OWASP: CSP, HSTS, X-Frame-Options)
+         ├── RateLimiter (Mitigação de Brute Force com partições por IP)
          ├── GlobalExceptionHandler (Logs estruturados + RFC 7807)
          │
          ├── Controllers (Apenas delegam e devolvem Views/JSON)
          │       │
          │       ▼
-         ├── Services (Regras de negócio, cálculos e contratos desacoplados)
+         ├── Services (Regras de negócio puras, transações atômicas e DTOs)
          │       │
          │       ▼
-         ├── Repositories (Abstração assíncrona EF Core)
+         ├── Repositories (Abstração assíncrona EF Core com AsNoTracking otimizado)
          │       │
          │       ▼
-         └── PostgreSQL (Npgsql com connection pooling e auditoria automática)
+         └── PostgreSQL (Npgsql com connection pooling e auditoria tipada IAuditableEntity)
 ```
+
+### ⚡ Destaques de Engenharia e Performance
+
+- **Auditoria Tipada de Alta Performance (`IAuditableEntity`):** O interceptor de auditoria no `SaveChangesAsync` opera diretamente sobre a interface `IAuditableEntity`, eliminando 100% das chamadas custosas por reflexão no Change Tracker do EF Core.
+- **Eliminação de Consultas N+1:** Listagens de usuários e perfis utilizam projeções diretas em LINQ com `LEFT JOIN` e `AsNoTracking()`, consolidando a busca em uma única instrução SQL ao PostgreSQL.
+- **Transações Atômicas no Identity:** Fluxos compostos (como criação de credencial e atribuição de Role) são envelopados em `IDbContextTransaction`, impedindo registros órfãos ou inconsistentes em caso de falhas parciais.
+- **Invalidação Instantânea de Sessão:** O `SecurityStampValidatorOptions` é configurado com intervalo de 10 segundos, garantindo que a desativação de uma conta ou alteração de credenciais revogue o cookie de autenticação quase em tempo real.
+- **Defesa em Profundidade contra Auto-Bloqueio:** Regras defensivas no núcleo do serviço impedem que o administrador logado desative acidentalmente o próprio acesso.
 
 ---
 
@@ -163,11 +172,11 @@ dotnet ef migrations add NomeDaMigration
 O banco não é necessário para os testes automatizados: o teste de integração
 usa EF Core InMemory para permanecer determinístico e isolado.
 
-## 🧪 Testes
+## 🧪 Testes Automatizados
 
-Os testes ficam em `tests/Serralheria-Paredes.Tests` e cobrem validação e
-formatação de CPF/CNPJ, resposta HTTP da tela de login e inicialização da
-aplicação com Identity e antiforgery em ambiente de teste.
+A suíte de testes em `tests/Serralheria-Paredes.Tests` possui **cobertura integral de fluxos críticos** (39 testes aprovados), combinando:
+- **Testes Unitários (xUnit + Moq):** Regras de autenticação (`AuthServiceTests`), bloqueio preventivo de usuários inativos, políticas de lockout, isolamento de perfil e cálculos matemáticos de orçamentos e insumos.
+- **Testes de Integração (`WebApplicationFactory`):** Ciclo de vida HTTP, endpoints protegidos por RBAC, respostas de `AcessoNegado`, validação de cookies de segurança e antiforgery tokens.
 
 ```bash
 dotnet test tests/Serralheria-Paredes.Tests/Serralheria-Paredes.Tests.csproj

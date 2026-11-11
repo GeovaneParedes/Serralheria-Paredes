@@ -40,6 +40,8 @@ public class AplicacaoIntegrationTests : IClassFixture<TestApplicationFactory>
     [InlineData("/Estoque")]
     [InlineData("/Orcamentos")]
     [InlineData("/Orcamentos/Detalhes/1")]
+    [InlineData("/Auth/Usuarios")]
+    [InlineData("/Auth/NovoUsuario")]
     public async Task Rotas_de_negocio_devem_exigir_autenticacao(string rota)
     {
         using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -52,6 +54,20 @@ public class AplicacaoIntegrationTests : IClassFixture<TestApplicationFactory>
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.StartsWith("https://localhost/Auth/Login", response.Headers.Location?.ToString());
+    }
+
+    [Fact]
+    public async Task Tela_de_acesso_negado_deve_responder_com_sucesso()
+    {
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+        client.BaseAddress = new Uri("https://localhost");
+
+        var response = await client.GetAsync("/Auth/AcessoNegado");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }
 

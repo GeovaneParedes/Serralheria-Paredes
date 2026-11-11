@@ -24,27 +24,17 @@ public class AppDbContext : IdentityDbContext<Usuario, Perfil, int>
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entries = ChangeTracker.Entries()
-            .Where(e => e.Entity is BaseEntity<int>
-                     || e.Entity is BaseEntity<Guid>
-                     || e.Entity is BaseEntity<long>
-                     || e.Entity is Usuario);
+        var entries = ChangeTracker.Entries<IAuditableEntity>();
 
         foreach (var entry in entries)
         {
             if (entry.State == EntityState.Added)
             {
-                if (entry.Properties.Any(p => p.Metadata.Name == "CreatedAt"))
-                {
-                    entry.Property("CreatedAt").CurrentValue = DateTime.UtcNow;
-                }
+                entry.Entity.CreatedAt = DateTime.UtcNow;
             }
             else if (entry.State == EntityState.Modified)
             {
-                if (entry.Properties.Any(p => p.Metadata.Name == "UpdatedAt"))
-                {
-                    entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
-                }
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
         }
 

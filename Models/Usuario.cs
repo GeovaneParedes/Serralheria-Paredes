@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Serralheria_Paredes.Models.Common;
 
 namespace Serralheria_Paredes.Models;
 
@@ -6,7 +7,7 @@ namespace Serralheria_Paredes.Models;
 /// Entidade de Usuário do sistema de gestão da Serralheria.
 /// Herda de IdentityUser<int> para suporte nativo a autenticação, hashing robusto e auditoria.
 /// </summary>
-public class Usuario : IdentityUser<int>
+public class Usuario : IdentityUser<int>, IAuditableEntity
 {
     public string NomeCompleto { get; set; } = string.Empty;
     public string? Cargo { get; set; }

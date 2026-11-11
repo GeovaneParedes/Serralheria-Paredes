@@ -13,5 +13,5 @@ public interface IAuthService : IService
     Task<OperationResult<UsuarioViewModel>> RegistrarUsuarioAsync(NovoUsuarioViewModel model, CancellationToken cancellationToken = default);
     Task<OperationResult<UsuarioViewModel>> ObterPorIdAsync(int id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<UsuarioViewModel>> ListarUsuariosAsync(CancellationToken cancellationToken = default);
-    Task<OperationResult> AlterarStatusUsuarioAsync(int id, bool ativo, CancellationToken cancellationToken = default);
+    Task<OperationResult> AlterarStatusUsuarioAsync(int id, bool ativo, int? executanteId = null, CancellationToken cancellationToken = default);
 }
